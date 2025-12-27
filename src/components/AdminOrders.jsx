@@ -40,7 +40,7 @@ const AdminOrders = () => {
   const [copied, setCopied] = useState({});
 
   useEffect(() => {
-    axios.get(`${BASE_URL}orders/admin/orders`).then((res) => {
+    axios.get(`${BASE_URL}/orders/admin/orders`).then((res) => {
       setOrders(sortOrders(res.data));
     });
   }, []);
@@ -67,7 +67,7 @@ const AdminOrders = () => {
     setPending(order._id);
 
     try {
-      await axios.put(`${BASE_URL}orders/${order._id}/status`, {
+      await axios.put(`${BASE_URL}/orders/${order._id}/status`, {
         status: newStatus,
       });
 
@@ -103,15 +103,14 @@ const AdminOrders = () => {
                 </div>
 
                 <div
-                  className={`inline-block rounded px-2 py-1 ${
-                    STATUS_COLORS[order.status]
-                  } border`}
+                  className={`inline-block rounded px-2 py-1 ${STATUS_COLORS[order.status]
+                    } border`}
                   title={
                     !statusWindow
                       ? "Order status can only be changed after 2 hours of placement."
                       : order.status === "Cancelled"
-                      ? "Status cannot be changed for cancelled orders"
-                      : ""
+                        ? "Status cannot be changed for cancelled orders"
+                        : ""
                   }
                 >
                   <select
@@ -147,11 +146,10 @@ const AdminOrders = () => {
 
                 <button
                   type="button"
-                  className={`px-2 py-1 rounded text-xs border bg-gray-100 ${
-                    copied[order._id]
-                      ? "bg-green-200 text-green-700 border-green-400"
-                      : "hover:bg-gray-200"
-                  }`}
+                  className={`px-2 py-1 rounded text-xs border bg-gray-100 ${copied[order._id]
+                    ? "bg-green-200 text-green-700 border-green-400"
+                    : "hover:bg-gray-200"
+                    }`}
                   onClick={() => handleCopy(order._id)}
                   disabled={!statusWindow}
                 >
@@ -195,8 +193,8 @@ const AdminOrders = () => {
                     {[order.user.street, order.user.area, order.user.city, order.user.zipCode]
                       .filter(Boolean)
                       .join(", ") || (
-                      <span className="text-gray-400">Not Provided</span>
-                    )}
+                        <span className="text-gray-400">Not Provided</span>
+                      )}
                   </div>
                 </div>
               )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import BASE_URL from "../api/configadmin.js";
 
 const ProductsAnalytics = () => {
   const [mostSold, setMostSold] = useState([]);
@@ -10,13 +11,13 @@ const ProductsAnalytics = () => {
       setLoading(true);
       try {
         // Get all products
-        const productsRes = await axios.get("https://twayba-backend-oln6.onrender.com//products");
+        const productsRes = await axios.get(`${BASE_URL}/products`);
         const products = productsRes.data || [];
         const productMap = {};
         products.forEach((p) => (productMap[p._id] = p));
 
         // Get all orders
-        const ordersRes = await axios.get("https://twayba-backend-oln6.onrender.com/api/orders");
+        const ordersRes = await axios.get(`${BASE_URL}/orders`);
         const orders = ordersRes.data || [];
 
         // Count product sales

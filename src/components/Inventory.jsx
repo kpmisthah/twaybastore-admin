@@ -1,131 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import BASE_URL from "../api/config";
-
-const ADMIN_URL = "https://twayba-backend-oln6.onrender.com/admin/";
-// const ADMIN_URL = "https://twayba-backend-oln6.onrender.com/admin/";
-
-
-const Snack = ({ msg, onClose, type = "info" }) => (
-  <div
-    className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-2xl shadow-xl text-white ${
-      type === "error" ? "bg-red-600" : "bg-green-600"
-    }`}
-  >
-    {msg}
-    <button onClick={onClose} className="ml-4 underline">
-      Close
-    </button>
-  </div>
-);
-
-// Confirm dialog for stock operations
-const ConfirmDialog = ({
-  open,
-  onCancel,
-  onConfirm,
-  action,
-  qty,
-  prod,
-  variant,
-}) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg px-8 py-6 max-w-xs w-full">
-        <h3 className="font-semibold text-lg mb-2 text-gray-900">
-          Confirm {action === "add" ? "Addition" : "Reduction"}
-        </h3>
-        <div className="text-gray-700 text-base mb-4">
-          Product: <span className="font-medium">{prod?.name}</span>
-          <br />
-          {variant && (
-            <>
-              Variant:{" "}
-              <span className="font-medium">
-                {variant.color || ""}{" "}
-                {variant.size ? `Size: ${variant.size}` : ""}
-              </span>
-              <br />
-            </>
-          )}
-          {action === "add" ? "Add" : "Minus"} <b>{qty}</b>{" "}
-          {variant ? "variant" : "main"} stock?
-        </div>
-        <div className="text-xs text-gray-400 mb-4">
-          <pre className="bg-gray-100 rounded p-2 overflow-x-auto">
-            {JSON.stringify(
-              {
-                productId: prod?._id,
-                variantId: variant?._id,
-                quantity: qty,
-                operation: action,
-              },
-              null,
-              2
-            )}
-          </pre>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            className="px-4 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-1 rounded text-white ${
-              action === "add"
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-red-600 hover:bg-red-700"
-            }`}
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Counter component (no stale closure issue, always shows valid count)
-const Counter = ({ value, setValue, disabled }) => {
-  const safeValue = Number.isNaN(Number(value)) || !value ? 1 : Number(value);
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-xl hover:bg-gray-200 font-bold transition"
-        disabled={disabled || safeValue <= 1}
-        onClick={() => setValue(Math.max(1, safeValue - 1))}
-        type="button"
-      >
-        -
-      </button>
-      <input
-        className="border border-gray-300 rounded-lg text-center w-14 h-9 font-bold text-black focus:ring-2 focus:ring-blue-400 outline-none transition-all bg-white"
-        type="number"
-        min={1}
-        value={safeValue}
-        style={{ color: "#222", background: "#fff" }}
-        onChange={(e) => {
-          let newVal = Number(e.target.value);
-          if (!newVal || newVal < 1) newVal = 1;
-          setValue(newVal);
-        }}
-        disabled={disabled}
-      />
-      <button
-        className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-xl hover:bg-gray-200 font-bold transition"
-        disabled={disabled}
-        onClick={() => setValue(safeValue + 1)}
-        type="button"
-      >
-        +
-      </button>
-    </div>
-  );
-};
+import BASE_URL from "../api/configadmin.js";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -148,7 +23,7 @@ const Inventory = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`${BASE_URL}products`)
+      .get(`${BASE_URL}/products`)
       .then((res) => setProducts(res.data))
       .finally(() => setLoading(false));
   }, []);
@@ -164,14 +39,14 @@ const Inventory = () => {
     try {
       let endpoint, data;
       if (op === "add") {
-        endpoint = `${ADMIN_URL}products/${productId}/add-stock`;
+        endpoint = `${BASE_URL}/admin/products/${productId}/add-stock`;
         data = { quantity: qty, variantId };
       } else {
-        endpoint = `${ADMIN_URL}products/${productId}/adjust-stock`;
+        endpoint = `${BASE_URL}/admin/products/${productId}/adjust-stock`;
         data = { quantity: qty, variantId };
       }
       await axios.patch(endpoint, data);
-      const res = await axios.get(`${BASE_URL}products`);
+      const res = await axios.get(`${BASE_URL}/products`);
       setProducts(res.data);
       setQuantity((q) => ({ ...q, [key]: 1 }));
       setSnack({
@@ -217,21 +92,19 @@ const Inventory = () => {
         </div>
         <div className="flex gap-3 mb-6">
           <button
-            className={`px-5 py-2 rounded-xl font-semibold transition ${
-              operation === "minus"
+            className={`px-5 py-2 rounded-xl font-semibold transition ${operation === "minus"
                 ? "bg-red-600 text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+              }`}
             onClick={() => setOperation("minus")}
           >
             Minus Stock
           </button>
           <button
-            className={`px-5 py-2 rounded-xl font-semibold transition ${
-              operation === "add"
+            className={`px-5 py-2 rounded-xl font-semibold transition ${operation === "add"
                 ? "bg-green-600 text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+              }`}
             onClick={() => setOperation("add")}
           >
             Add Stock
@@ -302,11 +175,10 @@ const Inventory = () => {
                               disabled={!!adjusting[key]}
                             />
                             <button
-                              className={`px-4 py-1 rounded-lg font-semibold shadow transition-all ${
-                                operation === "minus"
+                              className={`px-4 py-1 rounded-lg font-semibold shadow transition-all ${operation === "minus"
                                   ? "bg-red-500 hover:bg-red-600"
                                   : "bg-green-600 hover:bg-green-700"
-                              } text-white disabled:opacity-50`}
+                                } text-white disabled:opacity-50`}
                               disabled={!!adjusting[key]}
                               onClick={() =>
                                 setConfirm({
@@ -321,11 +193,10 @@ const Inventory = () => {
                             >
                               {adjusting[key]
                                 ? "Updating..."
-                                : `${
-                                    operation === "minus"
-                                      ? "Minus Variant"
-                                      : "Add Variant"
-                                  }`}
+                                : `${operation === "minus"
+                                  ? "Minus Variant"
+                                  : "Add Variant"
+                                }`}
                             </button>
                           </div>
                         );

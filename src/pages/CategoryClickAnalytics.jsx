@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import BASE_URL from "../api/configadmin.js";
 import {
   BarChart,
   Bar,
@@ -17,7 +18,7 @@ const CategoryClickAnalytics = () => {
   useEffect(() => {
     axios
       // .get("https://twayba-backend-oln6.onrender.com/api/category-clicks")
-      .get("https://twayba-backend-oln6.onrender.com/api/category-clicks")
+      .get(`${BASE_URL}/category-clicks`)
       .then((res) => {
         const formatted = res.data.map((item) => ({
           category: item.category,

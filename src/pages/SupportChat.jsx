@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import toast from "react-hot-toast";
 
-const ENDPOINT = "https://twayba-backend-oln6.onrender.com"; // Change to your backend
+import VERY_BASE_URL from "../api/veryBase.js";
+
+const ENDPOINT = VERY_BASE_URL; // Change to your backend
 const NOTIF_SOUND = "/notif.mp3"; // Place notif.mp3 in /public
 
 let socket;
@@ -31,8 +33,7 @@ const SupportChat = () => {
         audio.play();
         // Show toast
         toast(
-          `New support request from ${
-            newUser?.name || newUser?.phone || newUser?.email || "User"
+          `New support request from ${newUser?.name || newUser?.phone || newUser?.email || "User"
           }: ${newUser?.category || ""} - ${newUser?.subject || ""}`,
           { icon: "💬" }
         );

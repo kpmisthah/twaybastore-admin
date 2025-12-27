@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import BASE_URL from "../api/configadmin.js";
+
 const FILTERS = ["All", "Processing", "Packed", "Delivered", "Cancelled"];
 
 const AdminPayments = () => {
@@ -13,7 +15,7 @@ const AdminPayments = () => {
 
   useEffect(() => {
     axios
-      .get("https://twayba-backend-oln6.onrender.com/api/orders")
+      .get(`${BASE_URL}/orders`)
       .then((res) => {
         const data = res.data || [];
 
@@ -101,11 +103,10 @@ const AdminPayments = () => {
           <button
             key={f}
             onClick={() => applyFilter(f)}
-            className={`px-4 py-2 rounded-md border text-sm font-medium ${
-              activeFilter === f
+            className={`px-4 py-2 rounded-md border text-sm font-medium ${activeFilter === f
                 ? "bg-blue-600 text-white border-blue-600"
                 : "bg-white text-gray-700 border-gray-300"
-            }`}
+              }`}
           >
             {f}
           </button>
@@ -148,15 +149,14 @@ const AdminPayments = () => {
 
                   <td className="py-2 px-4">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        order.status === "Delivered"
+                      className={`px-2 py-1 rounded text-xs font-medium ${order.status === "Delivered"
                           ? "bg-green-100 text-green-700"
                           : order.status === "Packed"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : order.status === "Processing"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
+                            ? "bg-yellow-100 text-yellow-700"
+                            : order.status === "Processing"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {order.status}
                     </span>

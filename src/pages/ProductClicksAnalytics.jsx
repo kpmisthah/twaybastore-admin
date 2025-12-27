@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import BASE_URL from "../api/configadmin.js";
 
 const ProductClicksAnalytics = () => {
   const [products, setProducts] = useState([]);
@@ -10,7 +11,7 @@ const ProductClicksAnalytics = () => {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await axios.get("https://twayba-backend-oln6.onrender.com/api/products");
+        const res = await axios.get(`${BASE_URL}/products`);
         setProducts(res.data || []);
       } catch (err) {
         console.error("Error loading product clicks", err);
@@ -81,9 +82,8 @@ const ProductClicksAnalytics = () => {
                 {filteredProducts.map((product, index) => (
                   <tr
                     key={product._id}
-                    className={`transition hover:bg-indigo-50 ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
+                    className={`transition hover:bg-indigo-50 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
                   >
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {index + 1}

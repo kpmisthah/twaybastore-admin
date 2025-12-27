@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import BASE_URL from "../api/configadmin.js";
+
 // Friendly names
 const pageNames = {
   "/": "Homepage",
@@ -26,7 +28,7 @@ export default function PageAnalytics() {
   const fetchPages = async () => {
     try {
       setLoading(true);
-      const res = await fetch("https://twayba-backend-oln6.onrender.com/api/analytics/pages");
+      const res = await fetch(`${BASE_URL}/analytics/pages`);
       const data = await res.json();
       setPages(data);
     } catch (err) {
@@ -82,11 +84,10 @@ export default function PageAnalytics() {
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className={`text-sm px-2 py-1 rounded-full ${
-                            i < 3
+                          className={`text-sm px-2 py-1 rounded-full ${i < 3
                               ? "bg-indigo-100 text-indigo-700 font-semibold"
                               : "bg-gray-100 text-gray-600"
-                          }`}
+                            }`}
                         >
                           {i + 1}
                         </span>

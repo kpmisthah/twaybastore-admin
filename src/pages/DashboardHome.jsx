@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import BASE_URL from "../api/configadmin.js";
+
 const categoryLabels = [
   "Home & Kitchen",
   "Fitness",
@@ -22,8 +24,7 @@ const DashboardHome = () => {
       setLoading(true);
       try {
         // Fetch products and count per category
-        // const productsRes = await axios.get("https://twayba-backend-oln6.onrender.com/api/products");
-        const productsRes = await axios.get("https://twayba-backend-oln6.onrender.com/api/products");
+        const productsRes = await axios.get(`${BASE_URL}/products`);
 
         const products = productsRes.data || [];
         const counts = {};
@@ -36,13 +37,12 @@ const DashboardHome = () => {
         setCategoryCounts(counts);
 
         // Fetch orders (just count)
-        const ordersRes = await axios.get("https://twayba-backend-oln6.onrender.com/api/orders");
-        // const ordersRes = await axios.get("https://twayba-backend-oln6.onrender.com/api/orders");
+        const ordersRes = await axios.get(`${BASE_URL}/orders`);
 
         setOrderCount(Array.isArray(ordersRes.data) ? ordersRes.data.length : 0);
 
         // Fetch users (just count)
-        const usersRes = await axios.get("https://twayba-backend-oln6.onrender.com/api/users");
+        const usersRes = await axios.get(`${BASE_URL}/users`);
         setUserCount(Array.isArray(usersRes.data) ? usersRes.data.length : 0);
       } catch (e) {
         setCategoryCounts({});

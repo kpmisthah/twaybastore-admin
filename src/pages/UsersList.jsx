@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-import API_BASE from "../api/configadmin";
+import BASE_URL from "../api/configadmin";
 const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterDate, setFilterDate] = useState("");
 
-  const BASE_URL = `${API_BASE}/api/users`;
+  const API_URL = `${BASE_URL}/users`;
 
   useEffect(() => {
     fetchUsers();
@@ -16,7 +16,7 @@ const UsersList = () => {
 
   async function fetchUsers() {
     try {
-      const res = await axios.get(BASE_URL);
+      const res = await axios.get(API_URL);
       setUsers(res.data || []);
     } catch (err) {
       console.error("Failed to fetch users", err);
@@ -28,7 +28,7 @@ const UsersList = () => {
     const reason = prompt("Enter ban reason:");
     if (!reason) return;
     try {
-      await axios.put(`${BASE_URL}/ban/${id}`, { reason });
+      await axios.put(`${API_URL}/ban/${id}`, { reason });
       alert("User banned successfully");
       fetchUsers();
     } catch (err) {
@@ -38,7 +38,7 @@ const UsersList = () => {
 
   const handleUnban = async (id) => {
     try {
-      await axios.put(`${BASE_URL}/unban/${id}`);
+      await axios.put(`${API_URL}/unban/${id}`);
       alert("User unbanned successfully");
       fetchUsers();
     } catch (err) {

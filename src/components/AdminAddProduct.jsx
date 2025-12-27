@@ -7,7 +7,7 @@ const uploadToCloudflare = async (file) => {
   const fd = new FormData();
   fd.append("file", file);
 
-  const res = await fetch(`${BASE_URL}upload/product-image`, {
+  const res = await fetch(`${BASE_URL}/upload/product-image`, {
     method: "POST",
     body: fd,
   });
@@ -62,11 +62,11 @@ const AdminAddProduct = ({ onDone }) => {
       [name]: type === "checkbox" ? checked : value,
       ...(name === "realPrice" || name === "price"
         ? {
-            discount: calcDiscount(
-              name === "realPrice" ? value : prev.realPrice,
-              name === "price" ? value : prev.price
-            ),
-          }
+          discount: calcDiscount(
+            name === "realPrice" ? value : prev.realPrice,
+            name === "price" ? value : prev.price
+          ),
+        }
         : {}),
     }));
   };
@@ -129,7 +129,7 @@ const AdminAddProduct = ({ onDone }) => {
         ),
         images: imageUrls,
       };
-      await axios.post(`${BASE_URL}products`, productData);
+      await axios.post(`${BASE_URL}/products`, productData);
       if (onDone) onDone();
       else navigate("/admin/products");
     } catch (err) {

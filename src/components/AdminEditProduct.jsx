@@ -16,7 +16,7 @@ const uploadToCloudflare = async (file) => {
   const fd = new FormData();
   fd.append("file", file);
 
-  const res = await fetch(`${BASE_URL}upload/product-image`, {
+  const res = await fetch(`${BASE_URL}/upload/product-image`, {
     method: "POST",
     body: fd,
   });
@@ -65,7 +65,7 @@ const AdminEditProduct = ({ id, onDone }) => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`${BASE_URL}products/${id}`)
+      .get(`${BASE_URL}/products/${id}`)
       .then((res) => {
         setForm({
           ...res.data,
@@ -78,12 +78,12 @@ const AdminEditProduct = ({ id, onDone }) => {
         setVariants(
           Array.isArray(res.data.variants)
             ? res.data.variants.map((v) => ({
-                ...v,
-                realPrice: v.realPrice?.toString() || "",
-                price: v.price?.toString() || "",
-                discount: v.discount?.toString() || "",
-                stock: v.stock?.toString() || "",
-              }))
+              ...v,
+              realPrice: v.realPrice?.toString() || "",
+              price: v.price?.toString() || "",
+              discount: v.discount?.toString() || "",
+              stock: v.stock?.toString() || "",
+            }))
             : []
         );
       })
@@ -102,11 +102,11 @@ const AdminEditProduct = ({ id, onDone }) => {
       [name]: type === "checkbox" ? checked : value,
       ...(name === "realPrice" || name === "price"
         ? {
-            discount: calcDiscount(
-              name === "realPrice" ? value : prev.realPrice,
-              name === "price" ? value : prev.price
-            ),
-          }
+          discount: calcDiscount(
+            name === "realPrice" ? value : prev.realPrice,
+            name === "price" ? value : prev.price
+          ),
+        }
         : {}),
     }));
     setSuccess(false);
@@ -137,19 +137,19 @@ const AdminEditProduct = ({ id, onDone }) => {
   const removeVariant = (idx) =>
     setVariants(variants.filter((_, i) => i !== idx));
 
- const handleImageChange = async (idx, file) => {
-  if (!file) return;
-  try {
-    const url = await uploadToCloudflare(file);
-    setForm((f) => {
-      const imgs = [...f.images];
-      imgs[idx] = url;
-      return { ...f, images: imgs };
-    });
-  } catch (e) {
-    alert("Image upload failed");
-  }
-};
+  const handleImageChange = async (idx, file) => {
+    if (!file) return;
+    try {
+      const url = await uploadToCloudflare(file);
+      setForm((f) => {
+        const imgs = [...f.images];
+        imgs[idx] = url;
+        return { ...f, images: imgs };
+      });
+    } catch (e) {
+      alert("Image upload failed");
+    }
+  };
 
   const handleRemoveImage = (idx) => {
     setForm((f) => ({
@@ -178,7 +178,7 @@ const AdminEditProduct = ({ id, onDone }) => {
           })),
         images: form.images.filter(Boolean),
       };
-      await axios.put(`${BASE_URL}products/${id}`, payload);
+      await axios.put(`${BASE_URL}/products/${id}`, payload);
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);

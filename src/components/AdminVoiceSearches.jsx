@@ -68,7 +68,7 @@ const AdminVoiceSearches = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await axios.get(`${BASE_URL}analytics/search?limit=400`);
+        const res = await axios.get(`${BASE_URL}/analytics/search?limit=400`);
         const data = Array.isArray(res.data?.items) ? res.data.items : [];
         // normalize
         const normalized = data.map((it) => ({
@@ -290,9 +290,8 @@ const AdminVoiceSearches = () => {
           <button
             disabled={pageSafe <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className={`px-3 py-1 rounded border text-sm ${
-              pageSafe <= 1 ? "text-gray-400 border-gray-200 cursor-not-allowed" : "border-gray-300 hover:bg-gray-50"
-            }`}
+            className={`px-3 py-1 rounded border text-sm ${pageSafe <= 1 ? "text-gray-400 border-gray-200 cursor-not-allowed" : "border-gray-300 hover:bg-gray-50"
+              }`}
           >
             Prev
           </button>
@@ -300,9 +299,8 @@ const AdminVoiceSearches = () => {
           <button
             disabled={pageSafe >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className={`px-3 py-1 rounded border text-sm ${
-              pageSafe >= totalPages ? "text-gray-400 border-gray-200 cursor-not-allowed" : "border-gray-300 hover:bg-gray-50"
-            }`}
+            className={`px-3 py-1 rounded border text-sm ${pageSafe >= totalPages ? "text-gray-400 border-gray-200 cursor-not-allowed" : "border-gray-300 hover:bg-gray-50"
+              }`}
           >
             Next
           </button>

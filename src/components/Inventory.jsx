@@ -93,8 +93,8 @@ const Inventory = () => {
         <div className="flex gap-3 mb-6">
           <button
             className={`px-5 py-2 rounded-xl font-semibold transition ${operation === "minus"
-                ? "bg-red-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              ? "bg-red-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             onClick={() => setOperation("minus")}
           >
@@ -102,8 +102,8 @@ const Inventory = () => {
           </button>
           <button
             className={`px-5 py-2 rounded-xl font-semibold transition ${operation === "add"
-                ? "bg-green-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              ? "bg-green-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             onClick={() => setOperation("add")}
           >
@@ -176,8 +176,8 @@ const Inventory = () => {
                             />
                             <button
                               className={`px-4 py-1 rounded-lg font-semibold shadow transition-all ${operation === "minus"
-                                  ? "bg-red-500 hover:bg-red-600"
-                                  : "bg-green-600 hover:bg-green-700"
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-green-600 hover:bg-green-700"
                                 } text-white disabled:opacity-50`}
                               disabled={!!adjusting[key]}
                               onClick={() =>
@@ -237,6 +237,90 @@ const Inventory = () => {
         />
         {snack && <Snack {...snack} onClose={() => setSnack(null)} />}
       </div>
+    </div>
+  );
+};
+
+const Counter = ({ value, setValue, disabled }) => (
+  <div className="flex items-center gap-2">
+    <button
+      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center font-bold text-gray-600 bg-white hover:bg-gray-50 focus:outline-none"
+      onClick={() => setValue(Math.max(1, value - 1))}
+      disabled={disabled}
+    >
+      -
+    </button>
+    <div className="w-12 text-center font-medium bg-white px-2 py-1 border rounded-md">
+      {value}
+    </div>
+    <button
+      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center font-bold text-gray-600 bg-white hover:bg-gray-50 focus:outline-none"
+      onClick={() => setValue(value + 1)}
+      disabled={disabled}
+    >
+      +
+    </button>
+  </div>
+);
+
+const ConfirmDialog = ({
+  open,
+  prod,
+  variant,
+  qty,
+  action,
+  onCancel,
+  onConfirm,
+}) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+        <h3 className="text-lg font-bold mb-4">Confirm Stock Update</h3>
+        <p className="text-gray-700 mb-6">
+          Are you sure you want to{" "}
+          <span className="font-bold">
+            {action === "add" ? "ADD" : "REMOVE"}
+          </span>{" "}
+          <span className="bg-blue-100 text-blue-800 px-2 rounded-md font-mono">
+            {qty}
+          </span>{" "}
+          items for <span className="italic">{prod?.name}</span> (
+          {variant?.color || "Regular"})?
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded text-gray-600 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 rounded text-white ${action === "add"
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-red-600 hover:bg-red-700"
+              }`}
+          >
+            Yes, {action === "add" ? "Add" : "Remove"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Snack = ({ msg, type, onClose }) => {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div
+      className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium z-50 animate-bounce ${type === "error" ? "bg-red-600" : "bg-blue-600"
+        }`}
+    >
+      {msg}
     </div>
   );
 };

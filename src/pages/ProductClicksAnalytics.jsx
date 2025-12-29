@@ -11,8 +11,11 @@ const ProductClicksAnalytics = () => {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await axios.get(`${BASE_URL}/products`);
-        setProducts(res.data || []);
+        const res = await axios.get(`${BASE_URL}/products?limit=1000`);
+        // Handle paginated response
+        const productsData = res.data.products || res.data;
+        const data = Array.isArray(productsData) ? productsData : [];
+        setProducts(data);
       } catch (err) {
         console.error("Error loading product clicks", err);
         setProducts([]);
@@ -24,7 +27,8 @@ const ProductClicksAnalytics = () => {
   }, []);
 
   // Filter + sort logic
-  const filteredProducts = products
+  const productsArray = Array.isArray(products) ? products : [];
+  const filteredProducts = productsArray
     .filter((p) =>
       p.name.toLowerCase().includes(search.trim().toLowerCase())
     )

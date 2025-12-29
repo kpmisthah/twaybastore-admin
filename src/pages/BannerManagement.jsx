@@ -24,7 +24,7 @@ export default function BannerManagement() {
 
     const fetchBanners = async () => {
         try {
-            const token = localStorage.getItem("adminToken");
+            const token = localStorage.getItem("token");
 
             if (!token) {
                 console.error("No admin token found");
@@ -58,7 +58,7 @@ export default function BannerManagement() {
         formDataUpload.append("file", file);  // Changed from "image" to "file"
 
         try {
-            const token = localStorage.getItem("adminToken");
+            const token = localStorage.getItem("token");
             const response = await axios.post(`${BASE_URL}/upload/product-image`, formDataUpload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -90,7 +90,7 @@ export default function BannerManagement() {
         }
 
         try {
-            const token = localStorage.getItem("adminToken");
+            const token = localStorage.getItem("token");
 
             if (editingBanner) {
                 // Update existing banner
@@ -131,7 +131,7 @@ export default function BannerManagement() {
         if (!confirm("Are you sure you want to delete this banner?")) return;
 
         try {
-            const token = localStorage.getItem("adminToken");
+            const token = localStorage.getItem("token");
             await axios.delete(`${BASE_URL}/banners/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -145,7 +145,7 @@ export default function BannerManagement() {
 
     const handleToggle = async (id) => {
         try {
-            const token = localStorage.getItem("adminToken");
+            const token = localStorage.getItem("token");
             await axios.patch(`${BASE_URL}/banners/${id}/toggle`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });

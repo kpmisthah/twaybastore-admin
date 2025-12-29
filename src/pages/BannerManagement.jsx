@@ -55,11 +55,11 @@ export default function BannerManagement() {
         setUploading((prev) => ({ ...prev, [type]: true }));
 
         const formDataUpload = new FormData();
-        formDataUpload.append("image", file);
+        formDataUpload.append("file", file);  // Changed from "image" to "file"
 
         try {
             const token = localStorage.getItem("adminToken");
-            const response = await axios.post(`${BASE_URL}/upload`, formDataUpload, {
+            const response = await axios.post(`${BASE_URL}/upload/product-image`, formDataUpload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",
@@ -75,7 +75,7 @@ export default function BannerManagement() {
             alert(`${type === "desktop" ? "Desktop" : "Mobile"} image uploaded successfully!`);
         } catch (error) {
             console.error("Error uploading image:", error);
-            alert("Failed to upload image");
+            alert("Failed to upload image: " + (error.response?.data?.message || error.message));
         } finally {
             setUploading((prev) => ({ ...prev, [type]: false }));
         }

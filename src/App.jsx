@@ -188,7 +188,7 @@ const App = () => (
           path="/page-visit"
           element={
             <AdminShell>
-              <PageAnalytics/>
+              <PageAnalytics />
             </AdminShell>
           }
         />

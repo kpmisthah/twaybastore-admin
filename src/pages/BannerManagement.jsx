@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaImage } from "react-icons/fa";
 import axios from "axios";
-
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5000";
+import BASE_URL from "../api/configadmin.js";
 
 export default function BannerManagement() {
     const [banners, setBanners] = useState([]);
@@ -26,14 +25,26 @@ export default function BannerManagement() {
     const fetchBanners = async () => {
         try {
             const token = localStorage.getItem("adminToken");
-            const response = await axios.get(`${BASE_URL}/api/banners/admin/all`, {
+
+            if (!token) {
+                console.error("No admin token found");
+                alert("Please login first to access banner management");
+                setLoading(false);
+                return;
+            }
+
+            const response = await axios.get(`${BASE_URL}/banners/admin/all`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setBanners(response.data);
             setLoading(false);
         } catch (error) {
             console.error("Error fetching banners:", error);
-            alert("Failed to fetch banners");
+            if (error.response?.status === 401) {
+                alert("Session expired. Please login again.");
+            } else {
+                alert("Failed to fetch banners: " + (error.response?.data?.message || error.message));
+            }
             setLoading(false);
         }
     };
@@ -48,7 +59,7 @@ export default function BannerManagement() {
 
         try {
             const token = localStorage.getItem("adminToken");
-            const response = await axios.post(`${BASE_URL}/api/upload`, formDataUpload, {
+            const response = await axios.post(`${BASE_URL}/upload`, formDataUpload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",
@@ -83,13 +94,13 @@ export default function BannerManagement() {
 
             if (editingBanner) {
                 // Update existing banner
-                await axios.put(`${BASE_URL}/api/banners/${editingBanner._id}`, formData, {
+                await axios.put(`${BASE_URL}/banners/${editingBanner._id}`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 alert("Banner updated successfully!");
             } else {
                 // Create new banner
-                await axios.post(`${BASE_URL}/api/banners`, formData, {
+                await axios.post(`${BASE_URL}/banners`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 alert("Banner created successfully!");
@@ -121,7 +132,7 @@ export default function BannerManagement() {
 
         try {
             const token = localStorage.getItem("adminToken");
-            await axios.delete(`${BASE_URL}/api/banners/${id}`, {
+            await axios.delete(`${BASE_URL}/banners/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             alert("Banner deleted successfully!");
@@ -135,7 +146,7 @@ export default function BannerManagement() {
     const handleToggle = async (id) => {
         try {
             const token = localStorage.getItem("adminToken");
-            await axios.patch(`${BASE_URL}/api/banners/${id}/toggle`, {}, {
+            await axios.patch(`${BASE_URL}/banners/${id}/toggle`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             fetchBanners();
@@ -336,8 +347,8 @@ export default function BannerManagement() {
                                         <div className="flex items-center gap-2 mt-2">
                                             <span
                                                 className={`px-2 py-1 rounded text-xs font-medium ${banner.isActive
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-gray-100 text-gray-800"
+                                                    ? "bg-green-100 text-green-800"
+                                                    : "bg-gray-100 text-gray-800"
                                                     }`}
                                             >
                                                 {banner.isActive ? "Active" : "Inactive"}
@@ -353,8 +364,8 @@ export default function BannerManagement() {
                                         <button
                                             onClick={() => handleToggle(banner._id)}
                                             className={`px-3 py-1 rounded flex items-center gap-1 text-sm ${banner.isActive
-                                                    ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                                                    : "bg-green-100 text-green-800 hover:bg-green-200"
+                                                ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                                                : "bg-green-100 text-green-800 hover:bg-green-200"
                                                 }`}
                                             title={banner.isActive ? "Deactivate" : "Activate"}
                                         >

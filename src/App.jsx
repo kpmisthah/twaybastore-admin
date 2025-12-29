@@ -27,6 +27,7 @@ import AdminVoiceSearches from "./components/AdminVoiceSearches.jsx";
 import Login from "./pages/Login.jsx";
 import PageAnalytics from "./components/PageAnalytics.jsx";
 import AdminBroadcastPage from "./pages/AdminBroadcastPage.jsx";
+import BannerManagement from "./pages/BannerManagement.jsx";
 
 function AdminShell({ children }) {
   return (
@@ -189,6 +190,15 @@ const App = () => (
           element={
             <AdminShell>
               <PageAnalytics />
+            </AdminShell>
+          }
+        />
+
+        <Route
+          path="/admin/banners"
+          element={
+            <AdminShell>
+              <BannerManagement />
             </AdminShell>
           }
         />

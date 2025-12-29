@@ -23,13 +23,23 @@ const Inventory = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`${BASE_URL}/products`)
-      .then((res) => setProducts(res.data))
+      .get(`${BASE_URL}/products?limit=1000`)
+      .then((res) => {
+        // Handle paginated response - products are in .products property
+        const productsData = res.data.products || res.data;
+        const data = Array.isArray(productsData) ? productsData : [];
+        setProducts(data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch products:", error);
+        setProducts([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   // Filter products by search
-  const filteredProducts = products.filter((prod) =>
+  const productsArray = Array.isArray(products) ? products : [];
+  const filteredProducts = productsArray.filter((prod) =>
     prod.name?.toLowerCase().includes(search.trim().toLowerCase())
   );
 

@@ -24,9 +24,12 @@ const DashboardHome = () => {
       setLoading(true);
       try {
         // Fetch products and count per category
-        const productsRes = await axios.get(`${BASE_URL}/products`);
+        const productsRes = await axios.get(`${BASE_URL}/products?limit=1000`);
 
-        const products = productsRes.data || [];
+        // Handle paginated response - products are in .products property
+        const productsData = productsRes.data.products || productsRes.data;
+        const products = Array.isArray(productsData) ? productsData : [];
+
         const counts = {};
         for (const cat of categoryLabels) counts[cat] = 0;
         products.forEach((prod) => {
@@ -45,6 +48,7 @@ const DashboardHome = () => {
         const usersRes = await axios.get(`${BASE_URL}/users`);
         setUserCount(Array.isArray(usersRes.data) ? usersRes.data.length : 0);
       } catch (e) {
+        console.error("Failed to fetch stats:", e);
         setCategoryCounts({});
         setOrderCount(0);
         setUserCount(0);

@@ -17,9 +17,11 @@ const UsersList = () => {
   async function fetchUsers() {
     try {
       const res = await axios.get(API_URL);
-      setUsers(res.data || []);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setUsers(data);
     } catch (err) {
       console.error("Failed to fetch users", err);
+      setUsers([]);
     }
     setLoading(false);
   }
@@ -95,7 +97,8 @@ const UsersList = () => {
     a.click();
   };
 
-  const filteredUsers = users.filter((u) => {
+  const usersArray = Array.isArray(users) ? users : [];
+  const filteredUsers = usersArray.filter((u) => {
     const matchesSearch =
       u.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase()) ||

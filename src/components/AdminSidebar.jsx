@@ -6,6 +6,7 @@ const links = [
   { to: "/admin/products", label: "Products" },
   { to: "/admin/products/add", label: "Add Product" },
   { to: "/admin/orders", label: "Orders" },
+  { to: "/admin/banners", label: "Hero Banners" },
   { to: "/supportchat", label: "Support Chat" },
   { to: "/admin/inventory", label: "Inventory" },
   { to: "/product/Analytics", label: "Products Analytics" }, // kept your path

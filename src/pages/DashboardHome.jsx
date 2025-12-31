@@ -3,16 +3,6 @@ import axios from "axios";
 
 import BASE_URL from "../api/configadmin.js";
 
-const categoryLabels = [
-  "Home & Kitchen",
-  "Fitness",
-  "Gadgets",
-  "Shelving",
-  "Tools",
-  "Camping",
-  "Car Accessories",
-];
-
 const DashboardHome = () => {
   const [categoryCounts, setCategoryCounts] = useState({});
   const [orderCount, setOrderCount] = useState(0);
@@ -31,10 +21,12 @@ const DashboardHome = () => {
         const products = Array.isArray(productsData) ? productsData : [];
 
         const counts = {};
-        for (const cat of categoryLabels) counts[cat] = 0;
         products.forEach((prod) => {
-          if (counts.hasOwnProperty(prod.category)) {
-            counts[prod.category]++;
+          if (prod.category) {
+            // Trim whitespace to ensure clean keys
+            const cat = prod.category.trim();
+            // Aggregate counts dynamically
+            counts[cat] = (counts[cat] || 0) + 1;
           }
         });
         setCategoryCounts(counts);
@@ -71,16 +63,22 @@ const DashboardHome = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl px-2">
-        {categoryLabels.map((cat) => (
-          <div
-            key={cat}
-            className="bg-white border border-gray-200 rounded-lg flex flex-col items-center py-8"
-          >
-            <span className="text-lg font-medium text-gray-600 mb-2 text-center">{cat}</span>
-            <span className="text-3xl font-extrabold text-blue-700">{categoryCounts[cat] ?? 0}</span>
-            <span className="text-xs text-gray-400 mt-1">products</span>
+        {Object.keys(categoryCounts).length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 py-4">
+            No product categories found.
           </div>
-        ))}
+        ) : (
+          Object.entries(categoryCounts).map(([cat, count]) => (
+            <div
+              key={cat}
+              className="bg-white border border-gray-200 rounded-lg flex flex-col items-center py-8"
+            >
+              <span className="text-lg font-medium text-gray-600 mb-2 text-center">{cat}</span>
+              <span className="text-3xl font-extrabold text-blue-700">{count}</span>
+              <span className="text-xs text-gray-400 mt-1">products</span>
+            </div>
+          ))
+        )}
       </div>
       {loading && (
         <div className="fixed top-0 left-0 w-full h-full bg-white/80 flex items-center justify-center text-lg text-gray-500 z-10">

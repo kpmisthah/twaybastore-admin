@@ -2,6 +2,23 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BASE_URL from "../api/config";
 
+// --- HOOK: useDebounce ---
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 const SKELETON_COUNT = 8;
 
 function SkeletonAdminCard() {
@@ -25,24 +42,55 @@ function SkeletonAdminCard() {
 const AdminProducts = ({ onEdit }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
 
+  // Pagination & Search State
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500); // 500ms delay to avoid API spam
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  const LIMIT = 12;
+
+  // Reset page to 1 whenever search query changes
   useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  // Fetch products whenever page or debouncedSearch changes
+  useEffect(() => {
+    fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedSearch]);
+
+  const fetchProducts = async () => {
     setLoading(true);
-    axios
-      .get(`${BASE_URL}/products?limit=1000`)
-      .then((res) => {
-        // Handle paginated response - products are in .products property
-        const productsData = res.data.products || res.data;
-        const data = Array.isArray(productsData) ? productsData : [];
-        setProducts(data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch products:", error);
+    try {
+      const res = await axios.get(`${BASE_URL}/products`, {
+        params: {
+          page: page,
+          limit: LIMIT,
+          q: debouncedSearch,
+        },
+      });
+
+      // Response structure: { products: [...], pagination: { ... } }
+      const data = res.data;
+      if (data.products) {
+        setProducts(data.products);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setTotalProducts(data.pagination?.total || 0);
+      } else {
+        // Fallback if structure is different
         setProducts([]);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id, name) => {
     const confirmed = window.confirm(
@@ -50,8 +98,16 @@ const AdminProducts = ({ onEdit }) => {
     );
     if (!confirmed) return;
 
-    await axios.delete(`${BASE_URL}/products/${id}`);
-    setProducts((prev) => prev.filter((p) => p._id !== id));
+    try {
+      await axios.delete(`${BASE_URL}/products/${id}`);
+      // Optimistic update: remove from UI immediately
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+      // Optionally decrement total count locally
+      setTotalProducts((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      alert("Failed to delete product");
+    }
   };
 
   const handleEdit = (id, name) => {
@@ -65,21 +121,18 @@ const AdminProducts = ({ onEdit }) => {
     }
   };
 
-  const productsArray = Array.isArray(products) ? products : [];
-  const filteredProducts = productsArray.filter((prod) =>
-    [prod.name, prod.category, prod.description]
-      .join(" ")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
-
   return (
     <div className="max-w-7xl mx-auto py-10 px-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-800">
-          Products Management
-        </h1>
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-800">
+            Products Management
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Total Products: {totalProducts}
+          </p>
+        </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <input
             type="text"
@@ -106,7 +159,7 @@ const AdminProducts = ({ onEdit }) => {
           ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <SkeletonAdminCard key={i} />
           ))
-          : filteredProducts.map((prod) => (
+          : products.map((prod) => (
             <div
               key={prod._id}
               className="group bg-[#fafbfc] transition hover:shadow-md border border-gray-200 hover:scale-[1.02] flex flex-col rounded-xl overflow-hidden"
@@ -160,12 +213,38 @@ const AdminProducts = ({ onEdit }) => {
           ))}
       </div>
 
-      {/* Empty state */}
-      {!loading && filteredProducts.length === 0 && (
+      {/* Empty State */}
+      {!loading && products.length === 0 && (
         <div className="flex items-center justify-center h-[250px]">
           <div className="text-center text-gray-400 text-lg mt-12">
-            No products found.
+            No products found matching "{search}".
           </div>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-12">
+          <button
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm text-gray-600">
+            Page <span className="font-semibold text-gray-900">{page}</span> of{" "}
+            <span className="font-semibold text-gray-900">{totalPages}</span>
+          </span>
+
+          <button
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

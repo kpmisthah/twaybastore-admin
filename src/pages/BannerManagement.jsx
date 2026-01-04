@@ -89,18 +89,23 @@ export default function BannerManagement() {
             return;
         }
 
+        const payload = {
+            ...formData,
+            link: formData.link ? formData.link.trim().replace(/\s*\/\s*/g, "/") : "/products"
+        };
+
         try {
             const token = localStorage.getItem("token");
 
             if (editingBanner) {
                 // Update existing banner
-                await axios.put(`${BASE_URL}/banners/${editingBanner._id}`, formData, {
+                await axios.put(`${BASE_URL}/banners/${editingBanner._id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 alert("Banner updated successfully!");
             } else {
                 // Create new banner
-                await axios.post(`${BASE_URL}/banners`, formData, {
+                await axios.post(`${BASE_URL}/banners`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 alert("Banner created successfully!");

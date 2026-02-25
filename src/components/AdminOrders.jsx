@@ -40,7 +40,10 @@ const AdminOrders = () => {
   const [copied, setCopied] = useState({});
 
   useEffect(() => {
-    axios.get(`${BASE_URL}/orders/admin/orders`).then((res) => {
+    const token = localStorage.getItem("token");
+    axios.get(`${BASE_URL}/orders/admin/orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
       setOrders(sortOrders(res.data));
     });
   }, []);
@@ -67,8 +70,11 @@ const AdminOrders = () => {
     setPending(order._id);
 
     try {
+      const token = localStorage.getItem("token");
       await axios.put(`${BASE_URL}/orders/${order._id}/status`, {
         status: newStatus,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setOrders((old) =>

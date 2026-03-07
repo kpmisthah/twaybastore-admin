@@ -103,9 +103,15 @@ const AdminOrders = () => {
                   <span className="font-medium">
                     Order #{order._id.slice(-6)}
                   </span>
-                  <span className="ml-2 text-xs text-gray-500">
-                    {order.user?.fullName} ({order.user?.mobile})
-                  </span>
+                  {order.user ? (
+                    <span className="ml-2 text-xs text-gray-500">
+                      {order.user.fullName} ({order.user.mobile})
+                    </span>
+                  ) : (
+                    <span className="ml-2 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200 uppercase tracking-tight">
+                      Guest Order
+                    </span>
+                  )}
                 </div>
 
                 <div
@@ -181,27 +187,37 @@ const AdminOrders = () => {
                 {new Date(order.createdAt).toLocaleString()}
               </div>
 
-              {/* User Details */}
-              {order.user && (
-                <div className="bg-blue-50 border border-blue-100 rounded p-2 my-2 text-xs">
-                  <div>
-                    <span className="font-semibold">Email:</span>{" "}
-                    {order.user.email || (
-                      <span className="text-gray-400">Not Provided</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Phone:</span>{" "}
-                    {order.user.mobile}
-                  </div>
-                  <div className="mt-1">
-                    <span className="font-semibold">Address:</span>{" "}
-                    {[order.user.street, order.user.area, order.user.city, order.user.zipCode]
-                      .filter(Boolean)
-                      .join(", ") || (
-                        <span className="text-gray-400">Not Provided</span>
-                      )}
-                  </div>
+              {/* User / Guest Details */}
+              {(order.user || order.shipping) && (
+                <div className={`${order.user ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'} border rounded p-2 my-2 text-xs`}>
+                  {order.user ? (
+                    <>
+                      <div>
+                        <span className="font-semibold">Email:</span> {order.user.email || <span className="text-gray-400">Not Provided</span>}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Phone:</span> {order.user.mobile}
+                      </div>
+                      <div className="mt-1">
+                        <span className="font-semibold">Address:</span> {[order.user.street, order.user.area, order.user.city, order.user.zipCode].filter(Boolean).join(", ") || <span className="text-gray-400">Not Provided</span>}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="font-semibold">Customer:</span> {order.shipping?.name} (Guest)
+                      </div>
+                      <div>
+                        <span className="font-semibold">Email:</span> {order.shipping?.email}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Phone:</span> {order.shipping?.phone}
+                      </div>
+                      <div className="mt-1">
+                        <span className="font-semibold">Address:</span> {[order.shipping?.address, order.shipping?.city, order.shipping?.state, order.shipping?.zip, order.shipping?.country].filter(Boolean).join(", ")}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

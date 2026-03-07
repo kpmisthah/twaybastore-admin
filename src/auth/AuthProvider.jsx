@@ -27,7 +27,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     try {
       const t = localStorage.getItem("token") || "";
-      const u = JSON.parse(localStorage.getItem("user") || "null");
+      const raw = localStorage.getItem("user");
+      const u = JSON.parse(raw && raw !== "undefined" ? raw : "null");
       if (t && isTokenValid(t)) {
         setToken(t);
         setUser(u);

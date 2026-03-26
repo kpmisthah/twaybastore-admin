@@ -145,7 +145,9 @@ const AdminPayments = () => {
                   <td className="py-2 px-4 font-semibold text-blue-800">
                     €{order.total.toFixed(2)}
                   </td>
-                  <td className="py-2 px-4">{order.paymentMethod || "N/A"}</td>
+                  <td className="py-2 px-4">
+                    {order.paymentMethod === "PICKUP" ? "Pickup" : (order.paymentMethod || "N/A")}
+                  </td>
 
                   <td className="py-2 px-4">
                     <span

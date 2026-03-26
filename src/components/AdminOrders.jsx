@@ -251,6 +251,10 @@ const AdminOrders = () => {
                   <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 border border-blue-300 rounded">
                     Cash on Delivery (Ref: {order.codReference || "N/A"})
                   </span>
+                ) : order.paymentMethod === "PICKUP" ? (
+                  <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 border border-purple-300 rounded">
+                    Pickup from Shop
+                  </span>
                 ) : order.isPaid && order.paymentIntentId ? (
                   <>
                     <span className="inline-block px-2 py-1 bg-green-100 text-green-700 border border-green-300 rounded mr-2">

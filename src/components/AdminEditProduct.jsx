@@ -52,6 +52,7 @@ const AdminEditProduct = ({ id, onDone }) => {
     warranty: "",
     countryOfOrigin: "",
     sku: "",
+    productCode: "",
     description: "",
     images: [],
     variants: [],
@@ -292,8 +293,17 @@ const AdminEditProduct = ({ id, onDone }) => {
           name="sku"
           value={form.sku}
           onChange={handleChange}
-          placeholder="SKU/Code"
+          placeholder="SKU"
           className="w-full border px-3 py-2"
+          disabled={updating}
+        />
+        <input
+          name="productCode"
+          value={form.productCode}
+          onChange={handleChange}
+          placeholder="Unique Product Code (for Google Sheets sync) *"
+          className="w-full border px-3 py-2"
+          required
           disabled={updating}
         />
 

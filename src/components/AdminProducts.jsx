@@ -189,6 +189,9 @@ const AdminProducts = ({ onEdit }) => {
                   <div className="text-gray-800 font-bold text-lg mb-1">
                     €{prod.price}
                   </div>
+                  <div className="text-gray-600 text-xs mb-1">
+                    Code: <span className="font-mono bg-gray-100 px-1 rounded">{prod.productCode || "N/A"}</span>
+                  </div>
                   <div className="text-gray-600 text-xs mb-2">
                     {prod.category || "-"} | Stock: {prod.stock}
                   </div>

@@ -235,9 +235,8 @@ const AdminAddProduct = ({ onDone }) => {
           name="productCode"
           value={form.productCode}
           onChange={handleChange}
-          placeholder="Unique Product Code (for Google Sheets sync) *"
+          placeholder="Unique Product Code (for Google Sheets sync) (optional)"
           className="w-full border px-3 py-2"
-          required
         />
 
         {/* Variants */}

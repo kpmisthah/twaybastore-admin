@@ -81,15 +81,55 @@ const Inventory = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/products/export`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "inventory.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Export failed");
+    }
+  };
+
   // For counter defaults (avoid undefined)
   const getQty = (key) => quantity[key] || 1;
 
   return (
     <div className="w-full min-h-screen bg-gray-50 py-6 px-2 md:px-0">
       <div className="max-w-6xl mx-auto p-4 md:p-8 bg-white rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-extrabold mb-6 tracking-tight text-gray-800">
-          Inventory Management
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-extrabold tracking-tight text-gray-800">
+            Inventory Management
+          </h2>
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-xl font-semibold shadow-sm hover:bg-green-700 transition flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Export to Excel
+          </button>
+        </div>
 
         <div className="mb-6">
           <input

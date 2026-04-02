@@ -42,6 +42,7 @@ const AdminEditProduct = ({ id, onDone }) => {
     price: "",
     discount: "",
     category: "",
+    subCategory: "",
     brand: "",
     isDiscounted: false,
     limitedTimeDeal: false,
@@ -70,6 +71,7 @@ const AdminEditProduct = ({ id, onDone }) => {
       .then((res) => {
         setForm({
           ...res.data,
+          subCategory: res.data.subCategory || "",
           realPrice: res.data.realPrice?.toString() || "",
           price: res.data.price?.toString() || "",
           discount: res.data.discount?.toString() || "",
@@ -279,6 +281,18 @@ const AdminEditProduct = ({ id, onDone }) => {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Sub Category</label>
+          <input
+            name="subCategory"
+            value={form.subCategory}
+            onChange={handleChange}
+            placeholder="Sub Category (optional)"
+            className="w-full border px-3 py-2 rounded"
+            disabled={updating}
+          />
         </div>
 
         <input

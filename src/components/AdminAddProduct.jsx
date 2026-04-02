@@ -29,6 +29,7 @@ const AdminAddProduct = ({ onDone }) => {
     price: "",
     discount: "",
     category: "",
+    subCategory: "",
     brand: "",
     isDiscounted: false,
     limitedTimeDeal: false,
@@ -215,6 +216,17 @@ const AdminAddProduct = ({ onDone }) => {
             <option value="Camping">Camping</option>
             <option value="Car Accessories">Car Accessories</option>
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Sub Category</label>
+          <input
+            name="subCategory"
+            value={form.subCategory}
+            onChange={handleChange}
+            placeholder="Sub Category (optional)"
+            className="w-full border px-3 py-2 rounded"
+          />
         </div>
 
         <input

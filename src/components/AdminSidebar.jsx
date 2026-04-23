@@ -9,7 +9,7 @@ const links = [
   { to: "/admin/banners", label: "Hero Banners" },
   { to: "/supportchat", label: "Support Chat" },
   { to: "/admin/inventory", label: "Inventory" },
-  { to: "/product/Analytics", label: "Products Analytics" }, // kept your path
+  { to: "/product/Analytics", label: "Products Analytics" },
   { to: "/UsersList", label: "Users List" },
   { to: "/ProductClicksAnalytics", label: "Product Clicks" },
   { to: "/CategoryClickAnalytics", label: "Category Clicks" },
@@ -58,11 +58,10 @@ export default function AdminSidebar({ open, onClose }) {
                   end={Boolean(exact)}
                   className={({ isActive }) =>
                     [
-                      "block rounded-md px-3 py-2 text-sm",
-                      "hover:bg-gray-100 hover:text-gray-900",
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                       isActive
-                        ? "bg-gray-100 text-gray-900 font-semibold"
-                        : "text-gray-700",
+                        ? "bg-blue-50 text-blue-700 font-semibold shadow-sm"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")
                   }
                   onClick={onClose}

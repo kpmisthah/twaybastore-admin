@@ -57,6 +57,7 @@ const AdminEditProduct = ({ id, onDone }) => {
     description: "",
     images: [],
     variants: [],
+    offerDuration: "", // NEW
   });
 
   const [variants, setVariants] = useState([]);
@@ -180,6 +181,9 @@ const AdminEditProduct = ({ id, onDone }) => {
             stock: v.stock ? parseInt(v.stock, 10) : 0,
           })),
         images: form.images.filter(Boolean),
+        offerExpiry: form.offerDuration
+          ? new Date(Date.now() + parseInt(form.offerDuration) * 24 * 60 * 60 * 1000)
+          : form.offerExpiry,
       };
       await axios.put(`${BASE_URL}/products/${id}`, payload);
       setSuccess(true);
@@ -457,6 +461,40 @@ const AdminEditProduct = ({ id, onDone }) => {
             <span>Show in Black Friday Page</span>
           </label>
         </div>
+
+        {/* 🕒 NEW: Offer Duration Selector */}
+        {form.weeklyDeal && (
+          <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+            <label className="block text-sm font-semibold text-blue-800 mb-2">
+              Update Offer Duration (1-7 Days Manual)
+            </label>
+            {form.offerExpiry && new Date(form.offerExpiry) > new Date() && (
+              <p className="text-xs text-green-700 mb-2">
+                Active offer ends on:{" "}
+                <span className="font-bold">
+                  {new Date(form.offerExpiry).toLocaleString()}
+                </span>
+              </p>
+            )}
+            <select
+              name="offerDuration"
+              value={form.offerDuration}
+              onChange={handleChange}
+              className="w-full border border-blue-200 px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
+              disabled={updating}
+            >
+              <option value="">Keep current / No specific end...</option>
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                <option key={d} value={d}>
+                  Reset to {d} Day{d > 1 ? "s" : ""} from now
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-blue-600 mt-1 italic">
+              * Selecting a duration will overwrite the current expiry date.
+            </p>
+          </div>
+        )}
 
         {/* Images */}
         <div className="grid grid-cols-2 gap-3">

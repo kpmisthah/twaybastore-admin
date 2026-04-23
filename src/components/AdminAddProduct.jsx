@@ -44,6 +44,7 @@ const AdminAddProduct = ({ onDone }) => {
     countryOfOrigin: "Malta",
     sku: "",
     productCode: "",
+    offerDuration: "", // NEW: 1-7 days
   });
 
   const [variants, setVariants] = useState([]);
@@ -130,6 +131,9 @@ const AdminAddProduct = ({ onDone }) => {
           (v) => v.color && v.dimensions && v.stock && v.price
         ),
         images: imageUrls,
+        offerExpiry: form.offerDuration
+          ? new Date(Date.now() + parseInt(form.offerDuration) * 24 * 60 * 60 * 1000)
+          : undefined,
       };
       await axios.post(`${BASE_URL}/products`, productData);
       if (onDone) onDone();
@@ -382,6 +386,31 @@ const AdminAddProduct = ({ onDone }) => {
             <span>Show in Black Friday Page</span>
           </label>
         </div>
+
+        {/* 🕒 NEW: Offer Duration Selector */}
+        {form.weeklyDeal && (
+          <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+            <label className="block text-sm font-semibold text-blue-800 mb-2">
+              Offer Duration (1-7 Days Manual)
+            </label>
+            <select
+              name="offerDuration"
+              value={form.offerDuration}
+              onChange={handleChange}
+              className="w-full border border-blue-200 px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
+            >
+              <option value="">Select duration...</option>
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                <option key={d} value={d}>
+                  {d} Day{d > 1 ? "s" : ""} Offer
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-blue-600 mt-1 italic">
+              * The countdown will start from the moment you click "Add Product".
+            </p>
+          </div>
+        )}
 
         {/* IMAGE UPLOAD */}
         <div className="grid grid-cols-2 gap-3">

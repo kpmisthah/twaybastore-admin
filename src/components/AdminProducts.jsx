@@ -231,7 +231,10 @@ const AdminProducts = ({ onEdit }) => {
                     Code: <span className="font-mono bg-gray-100 px-1 rounded">{prod.productCode || "N/A"}</span>
                   </div>
                   <div className="text-gray-600 text-xs mb-2">
-                    {prod.category || "-"} | Stock: {prod.stock}
+                    {prod.category || "-"} | Stock:{" "}
+                    {prod.variants && prod.variants.length > 0
+                      ? prod.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
+                      : (prod.stock || 0)}
                   </div>
                   {/* Actions */}
                   <div className="flex gap-3">

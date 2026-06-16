@@ -24,23 +24,36 @@ export default function StoreLocations() {
   const [syncing, setSyncing] = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [tab, search, hideEmpty]);
+
   const fetchRecords = async () => {
     setLoading(true);
     try {
       const ep = tab === "master" ? "/master-sheet" : "";
-      const res = await axios.get(`${BASE_URL}/admin/store-inventory${ep}`);
+      const res = await axios.get(`${BASE_URL}/admin/store-inventory${ep}`, {
+        params: { page, limit: 10, q: search, tab, hideEmpty }
+      });
       setRecords(res.data.records || []);
-    } catch { setRecords([]); }
+      setTotalPages(res.data.totalPages || 1);
+    } catch { 
+      setRecords([]); 
+      setTotalPages(1);
+    }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchRecords(); }, [tab]);
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return records;
-    const q = search.toLowerCase();
-    return records.filter(r => r.product?.name?.toLowerCase().includes(q) || r.variant?.toLowerCase().includes(q));
-  }, [records, search]);
+  useEffect(() => { 
+    const timer = setTimeout(() => {
+      fetchRecords();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [tab, page, search, hideEmpty]);
 
   const handleSync = async () => {
     setSyncing(true);
@@ -145,18 +158,33 @@ export default function StoreLocations() {
               <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
               <span className="text-gray-400 text-sm">Loading inventory...</span>
             </div>
-          ) : filtered.length === 0 ? (
+          ) : records.length === 0 ? (
             <div className="text-center py-16 px-4">
               <div className="mb-4 flex justify-center"><FiBox className="w-12 h-12 text-gray-300" /></div>
               <div className="text-gray-500 text-lg font-medium mb-1">No inventory records</div>
-              <p className="text-gray-400 text-sm">Click "Sync Products" to pull in your existing products.</p>
+              <p className="text-gray-400 text-sm">Click "Sync Products" to pull in your existing products, or adjust your filters.</p>
             </div>
           ) : tab === "master" ? (
-            <MasterView records={filtered} />
+            <MasterView records={records} />
           ) : (
-            <LocationView records={hideEmpty ? filtered.filter(r => (r.locations?.[tab] || 0) > 0 || editing[r._id]) : filtered}
+            <LocationView records={records}
               location={tab} editing={editing} saving={saving}
               onStartEdit={startEdit} onCancelEdit={cancelEdit} onUpdateField={updateField} onSave={saveRecord} getTotal={getTotal} />
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && !loading && records.length > 0 && (
+            <div className="flex justify-center items-center gap-4 p-4 border-t border-gray-100 bg-gray-50/50">
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} 
+                className="px-4 py-2 rounded-lg bg-white border border-gray-200 shadow-sm text-sm disabled:opacity-50 font-semibold text-gray-600 hover:bg-gray-50 transition">
+                Previous
+              </button>
+              <span className="text-sm font-medium text-gray-500">Page <b className="text-gray-700">{page}</b> of <b className="text-gray-700">{totalPages}</b></span>
+              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} 
+                className="px-4 py-2 rounded-lg bg-white border border-gray-200 shadow-sm text-sm disabled:opacity-50 font-semibold text-gray-600 hover:bg-gray-50 transition">
+                Next
+              </button>
+            </div>
           )}
         </div>
 

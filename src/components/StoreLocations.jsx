@@ -100,7 +100,7 @@ export default function StoreLocations() {
               </p>
             </div>
             <button onClick={handleSync} disabled={syncing}
-              className="px-4 py-2.5 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-xl font-semibold text-sm hover:bg-white/30 transition disabled:opacity-50 flex items-center gap-2 whitespace-nowrap">
+              className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-xl font-bold text-sm hover:bg-white/30 transition disabled:opacity-50 flex items-center justify-center gap-2">
               <FiRefreshCw className={syncing ? "animate-spin w-4 h-4" : "w-4 h-4"} />
               {syncing ? "Syncing..." : "Sync Products"}
             </button>
@@ -117,35 +117,37 @@ export default function StoreLocations() {
           </div>
         </div>
 
-        {/* ── Tabs ── */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
-          {TABS.map(t => {
-            const m = TAB_META[t];
-            const active = tab === t;
-            return (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0 ${
-                  active ? `bg-gradient-to-r ${m.color} text-white shadow-lg scale-105` : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200"
-                }`}>
-                <span>{m.icon}</span>
-                <span className="hidden sm:inline">{m.label}</span>
-                <span className="sm:hidden">{m.label.slice(0, 5)}</span>
-              </button>
-            );
-          })}
+        {/* ── Tabs & Filters ── */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+          
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full xl:w-auto">
+            {TABS.map((t, idx) => {
+              const m = TAB_META[t];
+              const active = tab === t;
+              return (
+                <button key={t} onClick={() => setTab(t)}
+                  className={`${idx === 0 ? "col-span-2 sm:col-span-1" : "col-span-1"} px-3 py-3 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all flex justify-center items-center gap-2 ${
+                    active ? `bg-gradient-to-r ${m.color} text-white shadow-lg` : "bg-white text-gray-600 hover:bg-gray-50 shadow-sm border border-gray-200"
+                  }`}>
+                  <span className="text-base sm:text-sm">{m.icon}</span>
+                  <span>{m.label}</span>
+                </button>
+              );
+            })}
+          </div>
           {tab !== "master" && (
-            <div className="ml-auto flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm flex-shrink-0">
+            <div className="flex items-center self-start md:self-auto bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm w-full sm:w-auto">
               <button onClick={() => setHideEmpty(true)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
+                className={`flex-1 sm:flex-none px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center gap-2 ${
                   hideEmpty ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
                 }`}>
-                <FiCheckCircle className="w-3.5 h-3.5" /> In-Stock Only
+                <FiCheckCircle className="w-4 h-4" /> In-Stock Only
               </button>
               <button onClick={() => setHideEmpty(false)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
+                className={`flex-1 sm:flex-none px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center gap-2 ${
                   !hideEmpty ? "bg-gray-100 text-gray-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
                 }`}>
-                <FiDatabase className="w-3.5 h-3.5" /> Show All Products
+                <FiDatabase className="w-4 h-4" /> Show All
               </button>
             </div>
           )}
@@ -260,11 +262,11 @@ function MasterView({ records }) {
                 </div>
                 <span className={`font-bold text-lg px-3 py-1 rounded-xl ${total > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{total}</span>
               </div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {LOCATIONS.map(l => (
-                  <div key={l} className={`${TAB_META[l].bg} rounded-lg p-2 text-center`}>
-                    <div className="text-[10px] text-gray-500">{TAB_META[l].icon}</div>
-                    <div className={`font-bold text-sm ${TAB_META[l].text}`}>{r.locations[l] || 0}</div>
+                  <div key={l} className={`${TAB_META[l].bg} rounded-xl p-3 flex flex-col justify-center items-center shadow-sm`}>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-1">{TAB_META[l].icon} <span className="capitalize">{TAB_META[l].label}</span></div>
+                    <div className={`font-black text-xl ${TAB_META[l].text}`}>{r.locations[l] || 0}</div>
                   </div>
                 ))}
               </div>
@@ -367,29 +369,32 @@ function LocationView({ records, location, editing, saving, onStartEdit, onCance
                   </div>
                 </div>
               </div>
-              <div className={`${meta.bg} rounded-xl p-3 flex items-center justify-between`}>
-                <span className={`text-sm font-semibold ${meta.text}`}>{meta.icon} {meta.label}</span>
-                {isEdit ? (
-                  <div className="flex items-center gap-1.5">
+              <div className={`${meta.bg} rounded-xl p-4 flex flex-col gap-3 shadow-sm`}>
+                <div className="flex justify-between items-center w-full">
+                   <span className={`text-sm font-bold flex items-center gap-2 ${meta.text}`}>{meta.icon} {meta.label} Qty</span>
+                   {!isEdit && (
+                     <div className="flex items-center gap-3">
+                       <span className={`font-mono font-black text-2xl ${meta.text}`}>{r.locations[location] || 0}</span>
+                       <button onClick={() => onStartEdit(r._id, { ...r.locations })}
+                         className={`h-10 w-10 bg-white/90 ${meta.text} rounded-lg shadow-sm flex items-center justify-center hover:bg-white transition`}>
+                         <FiEdit2 className="w-4 h-4" />
+                       </button>
+                     </div>
+                   )}
+                </div>
+                {isEdit && (
+                  <div className="flex items-center gap-2 w-full mt-1">
                     <input type="number" min="0" value={data[location] ?? 0}
                       onChange={e => onUpdateField(r._id, location, e.target.value)}
                       disabled={isSave}
-                      className={`w-14 h-8 text-center px-1 border-2 rounded-md font-mono font-bold text-sm ${meta.text} border-current focus:outline-none bg-white`} />
+                      className={`flex-1 h-12 text-center px-3 border-2 rounded-xl font-mono font-black text-lg ${meta.text} border-current focus:outline-none bg-white`} />
                     <button onClick={() => onSave(r._id)} disabled={isSave}
-                      className="h-8 w-8 bg-emerald-500 text-white rounded-md flex items-center justify-center shadow-sm hover:bg-emerald-600 transition disabled:opacity-50">
-                      {isSave ? <FiRefreshCw className="animate-spin w-3.5 h-3.5" /> : <FiCheck className="w-4 h-4" />}
+                      className="h-12 px-6 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center shadow-sm hover:bg-emerald-600 transition disabled:opacity-50">
+                      {isSave ? <FiRefreshCw className="animate-spin w-5 h-5" /> : "Save"}
                     </button>
                     <button onClick={() => onCancelEdit(r._id)} disabled={isSave}
-                      className="h-8 w-8 bg-gray-200 text-gray-600 rounded-md flex items-center justify-center shadow-sm hover:bg-gray-300 transition">
-                      <FiX className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className={`font-mono font-bold text-xl ${meta.text}`}>{r.locations[location] || 0}</span>
-                    <button onClick={() => onStartEdit(r._id, { ...r.locations })}
-                      className={`h-8 w-8 bg-white/80 ${meta.text} rounded-md shadow-sm flex items-center justify-center hover:bg-white transition`}>
-                      <FiEdit2 className="w-4 h-4" />
+                      className="h-12 px-5 bg-gray-200 text-gray-600 rounded-xl font-bold flex items-center justify-center shadow-sm hover:bg-gray-300 transition">
+                      Cancel
                     </button>
                   </div>
                 )}

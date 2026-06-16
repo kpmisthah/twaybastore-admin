@@ -9,6 +9,7 @@ const links = [
   { to: "/admin/banners", label: "Hero Banners" },
   { to: "/supportchat", label: "Support Chat" },
   { to: "/admin/inventory", label: "Inventory" },
+  { to: "/admin/store-locations", label: "Store Locations" },
   { to: "/product/Analytics", label: "Products Analytics" },
   { to: "/UsersList", label: "Users List" },
   { to: "/ProductClicksAnalytics", label: "Product Clicks" },

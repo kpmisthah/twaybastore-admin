@@ -15,6 +15,7 @@ import EditProductPage from "./pages/EditProductPage";
 import OrdersPage from "./pages/OrdersPage";
 import SupportChat from "./pages/SupportChat";
 import Inventory from "./components/Inventory";
+import StoreLocations from "./components/StoreLocations";
 import ProductsAnalytics from "./pages/ProductsAnalytics";
 import UsersList from "./pages/UsersList";
 import ProductClicksAnalytics from "./pages/ProductClicksAnalytics";
@@ -64,6 +65,15 @@ const App = () => (
           element={
             <AdminShell>
               <Inventory />
+            </AdminShell>
+          }
+        />
+
+        <Route
+          path="/admin/store-locations"
+          element={
+            <AdminShell>
+              <StoreLocations />
             </AdminShell>
           }
         />

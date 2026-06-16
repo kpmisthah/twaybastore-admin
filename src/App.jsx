@@ -29,6 +29,7 @@ import Login from "./pages/Login.jsx";
 import PageAnalytics from "./components/PageAnalytics.jsx";
 import AdminBroadcastPage from "./pages/AdminBroadcastPage.jsx";
 import BannerManagement from "./pages/BannerManagement.jsx";
+import AbandonedCheckouts from "./pages/AbandonedCheckouts.jsx";
 
 function AdminShell({ children }) {
   return (
@@ -204,6 +205,14 @@ const App = () => (
           }
         />
 
+        <Route
+          path="/admin/abandoned-checkouts"
+          element={
+            <AdminShell>
+              <AbandonedCheckouts />
+            </AdminShell>
+          }
+        />
         <Route
           path="/admin/banners"
           element={

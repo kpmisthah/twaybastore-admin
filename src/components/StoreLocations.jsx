@@ -244,21 +244,20 @@ export default function StoreLocations() {
 function MasterView({ records }) {
   return (
     <>
-      <div className="w-full">
-        <table className="w-full text-sm">
+      <div className="w-full overflow-x-auto pb-2">
+        <table className="w-full text-sm min-w-[650px] md:min-w-full">
           <thead>
             <tr className="bg-gradient-to-r from-violet-50 to-indigo-50 border-b border-indigo-100">
-              <th className="text-left px-3 sm:px-5 py-3.5 font-semibold text-gray-700">Product</th>
+              <th className="text-left px-4 sm:px-5 py-3.5 font-semibold text-gray-700 w-64">Product</th>
               <th className="hidden sm:table-cell text-left px-4 py-3.5 font-semibold text-gray-700">Variant</th>
               {LOCATIONS.map(l => (
-                <th key={l} className="text-center px-1 sm:px-3 py-3.5 font-semibold text-gray-500 text-[10px] sm:text-xs uppercase tracking-wide">
+                <th key={l} className="text-center px-2 sm:px-3 py-3.5 font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   <div className="flex justify-center" title={TAB_META[l].label}>
-                    <span className="sm:hidden text-base">{TAB_META[l].icon}</span>
-                    <span className="hidden sm:flex items-center gap-1.5">{TAB_META[l].icon} {TAB_META[l].label}</span>
+                    <span className="flex items-center gap-1.5">{TAB_META[l].icon} <span className="hidden sm:inline">{TAB_META[l].label}</span></span>
                   </div>
                 </th>
               ))}
-              <th className="text-center px-2 sm:px-4 py-3.5 font-bold text-indigo-700 text-[10px] sm:text-xs uppercase tracking-wide">Total</th>
+              <th className="text-center px-4 py-3.5 font-bold text-indigo-700 text-xs uppercase tracking-wide">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -270,7 +269,7 @@ function MasterView({ records }) {
                     <div className="flex items-center gap-2 sm:gap-3">
                       <img src={r.product?.images?.[0] || ""} alt="" className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg object-cover object-top bg-gray-50 border border-gray-100 flex-shrink-0" />
                       <div className="flex flex-col min-w-0">
-                        <span className="font-bold sm:font-medium text-gray-800 text-[11px] sm:text-sm truncate max-w-[100px] sm:max-w-[200px]">{r.product?.name || "Unknown"}</span>
+                        <span className="font-bold sm:font-medium text-gray-800 text-sm whitespace-normal line-clamp-2">{r.product?.name || "Unknown"}</span>
                         <span className={`sm:hidden mt-0.5 w-fit px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap ${r.variant === "default" ? "bg-gray-100 text-gray-500" : "bg-indigo-100 text-indigo-700"}`}>
                           {r.variant === "default" ? "Standard" : r.variant}
                         </span>
@@ -283,14 +282,14 @@ function MasterView({ records }) {
                     </span>
                   </td>
                   {LOCATIONS.map(l => (
-                    <td key={l} className="text-center px-1 sm:px-3 py-3 font-mono text-xs sm:text-sm">
-                      <span className={`font-bold ${r.locations[l] > 0 ? TAB_META[l].text : "text-gray-400 font-normal"}`}>
+                    <td key={l} className="text-center px-2 sm:px-3 py-3 font-mono text-base">
+                      <span className={`font-bold ${r.locations[l] > 0 ? TAB_META[l].text : "text-gray-400"}`}>
                         {r.locations[l] || 0}
                       </span>
                     </td>
                   ))}
-                  <td className="text-center px-2 sm:px-4 py-3">
-                    <span className={`font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded sm:rounded-lg text-xs sm:text-sm ${total > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{total}</span>
+                  <td className="text-center px-4 py-3">
+                    <span className={`font-bold px-2.5 py-1 rounded-lg text-sm ${total > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{total}</span>
                   </td>
                 </tr>
               );
@@ -307,11 +306,11 @@ function LocationView({ records, location, editing, saving, onStartEdit, onCance
   const meta = TAB_META[location];
   return (
     <>
-      <div className="w-full">
-        <table className="w-full text-sm">
+      <div className="w-full overflow-x-auto pb-2">
+        <table className="w-full text-sm min-w-[550px] md:min-w-full">
           <thead>
             <tr className={`${meta.bg} border-b`}>
-              <th className="text-left px-3 sm:px-5 py-3.5 font-semibold text-gray-700">Product</th>
+              <th className="text-left px-3 sm:px-5 py-3.5 font-semibold text-gray-700 w-56 sm:w-64">Product</th>
               <th className="hidden sm:table-cell text-left px-4 py-3.5 font-semibold text-gray-700">Variant</th>
               <th className={`text-center px-2 sm:px-4 py-3.5 font-bold ${meta.text}`}>
                 <span className="hidden sm:inline flex items-center justify-center gap-2">{meta.icon} {meta.label} Qty</span>
@@ -331,7 +330,7 @@ function LocationView({ records, location, editing, saving, onStartEdit, onCance
                     <div className="flex items-center gap-2 sm:gap-3">
                       <img src={r.product?.images?.[0] || ""} alt="" className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover object-top bg-gray-50 border border-gray-100 flex-shrink-0" />
                       <div className="flex flex-col min-w-0">
-                        <span className="font-bold sm:font-medium text-gray-800 text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[250px]">{r.product?.name}</span>
+                        <span className="font-bold sm:font-medium text-gray-800 text-sm whitespace-normal line-clamp-2 max-w-[200px] sm:max-w-[250px]">{r.product?.name}</span>
                         <span className={`sm:hidden mt-1 w-fit px-1.5 py-0.5 rounded-md text-[9px] font-medium whitespace-nowrap ${r.variant === "default" ? "bg-gray-100 text-gray-500" : "bg-indigo-100 text-indigo-700"}`}>
                           {r.variant === "default" ? "Standard" : r.variant}
                         </span>

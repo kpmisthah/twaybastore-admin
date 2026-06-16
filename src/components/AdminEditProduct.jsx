@@ -448,7 +448,6 @@ const AdminEditProduct = ({ id, onDone }) => {
             <span>Show in Discount Section</span>
           </label>
 
-          {/* 🖤 New Black Friday Checkbox */}
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -462,7 +461,6 @@ const AdminEditProduct = ({ id, onDone }) => {
           </label>
         </div>
 
-        {/* 🕒 NEW: Offer Duration Selector */}
         {form.weeklyDeal && (
           <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
             <label className="block text-sm font-semibold text-blue-800 mb-2">

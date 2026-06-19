@@ -58,6 +58,7 @@ const AdminEditProduct = ({ id, onDone }) => {
     images: [],
     variants: [],
     offerDuration: "", // NEW
+    locations: { downstairs: "", upstairs: "", store: "", garage: "" },
   });
 
   const [variants, setVariants] = useState([]);
@@ -78,6 +79,7 @@ const AdminEditProduct = ({ id, onDone }) => {
           discount: res.data.discount?.toString() || "",
           blackFridayOffer: res.data.blackFridayOffer || false, // 🖤 Added
           images: Array.isArray(res.data.images) ? res.data.images : [],
+          locations: res.data.locations || { downstairs: "", upstairs: "", store: "", garage: "" },
         });
         setVariants(
           Array.isArray(res.data.variants)
@@ -87,6 +89,7 @@ const AdminEditProduct = ({ id, onDone }) => {
               price: v.price?.toString() || "",
               discount: v.discount?.toString() || "",
               stock: v.stock?.toString() || "",
+              locations: v.locations || { downstairs: "", upstairs: "", store: "", garage: "" },
             }))
             : []
         );
@@ -101,6 +104,19 @@ const AdminEditProduct = ({ id, onDone }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    if (["downstairs", "upstairs", "store", "garage"].includes(name)) {
+      setForm((prev) => ({
+        ...prev,
+        locations: {
+          ...prev.locations,
+          [name]: value
+        }
+      }));
+      setSuccess(false);
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -120,7 +136,13 @@ const AdminEditProduct = ({ id, onDone }) => {
     setVariants((variants) =>
       variants.map((v, i) => {
         if (i !== idx) return v;
-        const updated = { ...v, [field]: value };
+        const updated = { ...v };
+        if (["downstairs", "upstairs", "store", "garage"].includes(field)) {
+          updated.locations = { ...updated.locations, [field]: value };
+          updated.stock = (parseInt(updated.locations.downstairs) || 0) + (parseInt(updated.locations.upstairs) || 0) + (parseInt(updated.locations.store) || 0) + (parseInt(updated.locations.garage) || 0);
+        } else {
+          updated[field] = value;
+        }
         if (field === "realPrice" || field === "price") {
           updated.discount = calcDiscount(
             field === "realPrice" ? value : v.realPrice,
@@ -135,7 +157,7 @@ const AdminEditProduct = ({ id, onDone }) => {
   const addVariant = () =>
     setVariants([
       ...variants,
-      { color: "", stock: "", realPrice: "", price: "", discount: "" },
+      { color: "", stock: "", locations: { downstairs: "", upstairs: "", store: "", garage: "" }, realPrice: "", price: "", discount: "" },
     ]);
 
   const removeVariant = (idx) =>
@@ -171,14 +193,26 @@ const AdminEditProduct = ({ id, onDone }) => {
         realPrice: parseFloat(form.realPrice),
         price: parseFloat(form.price),
         discount: form.discount ? parseFloat(form.discount) : 0,
+        locations: {
+          downstairs: parseInt(form.locations?.downstairs) || 0,
+          upstairs: parseInt(form.locations?.upstairs) || 0,
+          store: parseInt(form.locations?.store) || 0,
+          garage: parseInt(form.locations?.garage) || 0,
+        },
         variants: variants
-          .filter((v) => v.color && v.stock && v.price)
+          .filter((v) => v.color && v.price)
           .map((v) => ({
             ...v,
             realPrice: v.realPrice ? parseFloat(v.realPrice) : undefined,
             price: v.price ? parseFloat(v.price) : undefined,
             discount: v.discount ? parseFloat(v.discount) : undefined,
-            stock: v.stock ? parseInt(v.stock, 10) : 0,
+            locations: {
+              downstairs: parseInt(v.locations?.downstairs) || 0,
+              upstairs: parseInt(v.locations?.upstairs) || 0,
+              store: parseInt(v.locations?.store) || 0,
+              garage: parseInt(v.locations?.garage) || 0,
+            },
+            stock: (parseInt(v.locations?.downstairs) || 0) + (parseInt(v.locations?.upstairs) || 0) + (parseInt(v.locations?.store) || 0) + (parseInt(v.locations?.garage) || 0)
           })),
         images: form.images.filter(Boolean),
         offerExpiry: form.offerDuration
@@ -324,17 +358,77 @@ const AdminEditProduct = ({ id, onDone }) => {
           disabled={updating}
         />
 
+        {variants.length === 0 && (
+          <div className="bg-gray-50 p-3 rounded border">
+            <label className="font-medium text-sm mb-2 block">Inventory Locations (Base Stock)</label>
+            <div className="grid grid-cols-4 gap-2">
+              <input
+                name="downstairs"
+                type="number"
+                min={0}
+                value={form.locations?.downstairs || ""}
+                onChange={handleChange}
+                placeholder="Downstairs"
+                className="border px-2 py-1 w-full"
+                disabled={updating}
+              />
+              <input
+                name="upstairs"
+                type="number"
+                min={0}
+                value={form.locations?.upstairs || ""}
+                onChange={handleChange}
+                placeholder="Upstairs"
+                className="border px-2 py-1 w-full"
+                disabled={updating}
+              />
+              <input
+                name="store"
+                type="number"
+                min={0}
+                value={form.locations?.store || ""}
+                onChange={handleChange}
+                placeholder="Store"
+                className="border px-2 py-1 w-full"
+                disabled={updating}
+              />
+              <input
+                name="garage"
+                type="number"
+                min={0}
+                value={form.locations?.garage || ""}
+                onChange={handleChange}
+                placeholder="Garage"
+                className="border px-2 py-1 w-full"
+                disabled={updating}
+              />
+            </div>
+            <div className="mt-2 text-sm font-semibold">
+              Total Stock: {
+                (parseInt(form.locations?.downstairs) || 0) +
+                (parseInt(form.locations?.upstairs) || 0) +
+                (parseInt(form.locations?.store) || 0) +
+                (parseInt(form.locations?.garage) || 0)
+              }
+            </div>
+          </div>
+        )}
+
         <div className="mb-3 text-gray-700">
-          <span className="font-medium">Total Stock:</span> {totalStock}
+          <span className="font-medium">Total Global Stock:</span> {totalStock || (
+            (parseInt(form.locations?.downstairs) || 0) +
+            (parseInt(form.locations?.upstairs) || 0) +
+            (parseInt(form.locations?.store) || 0) +
+            (parseInt(form.locations?.garage) || 0)
+          )}
         </div>
 
-        {/* Variant management */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="font-medium text-sm">Variants:</label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="font-medium text-sm">Product Variants:</label>
             <button
               type="button"
-              className="text-blue-600 text-xs"
+              className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-semibold hover:bg-blue-200"
               onClick={addVariant}
               disabled={updating}
             >
@@ -342,70 +436,124 @@ const AdminEditProduct = ({ id, onDone }) => {
             </button>
           </div>
           {variants.map((v, i) => (
-            <div className="flex gap-2 mb-1" key={i}>
-              <input
-                value={v.color}
-                onChange={(e) =>
-                  handleVariantChange(i, "color", e.target.value)
-                }
-                placeholder="Color"
-                className="border px-2 py-1 w-1/6"
-                disabled={updating}
-              />
-              <input
-                value={v.dimensions || ""}
-                onChange={(e) =>
-                  handleVariantChange(i, "dimensions", e.target.value)
-                }
-                placeholder="Dimensions (e.g. 1.8m x 1m)"
-                className="border px-2 py-1 w-1/6"
-                disabled={updating}
-              />
-              <input
-                value={v.stock}
-                type="number"
-                onChange={(e) =>
-                  handleVariantChange(i, "stock", e.target.value)
-                }
-                placeholder="Stock"
-                className="border px-2 py-1 w-1/6"
-                disabled={updating}
-              />
-              <input
-                value={v.realPrice}
-                type="number"
-                onChange={(e) =>
-                  handleVariantChange(i, "realPrice", e.target.value)
-                }
-                placeholder="Old Price"
-                className="border px-2 py-1 w-1/6"
-                disabled={updating}
-              />
-              <input
-                value={v.price}
-                type="number"
-                onChange={(e) =>
-                  handleVariantChange(i, "price", e.target.value)
-                }
-                placeholder="Curr. Price"
-                className="border px-2 py-1 w-1/6"
-                disabled={updating}
-              />
-              <input
-                value={v.discount}
-                readOnly
-                placeholder="%"
-                className="border px-2 py-1 w-1/6"
-                disabled={updating}
-              />
+            <div className="bg-gray-50 p-3 rounded border mb-3 relative" key={i}>
               <button
                 type="button"
                 onClick={() => removeVariant(i)}
-                className="text-red-600 text-xs ml-2"
+                className="absolute top-3 right-3 text-red-600 text-xs font-bold hover:underline"
                 disabled={updating}
               >
                 Remove
               </button>
+              
+              <div className="grid grid-cols-5 gap-2 pr-16 mb-3">
+                <input
+                  value={v.color}
+                  onChange={(e) =>
+                    handleVariantChange(i, "color", e.target.value)
+                  }
+                  placeholder="Color"
+                  className="border px-2 py-1 w-full text-sm"
+                  disabled={updating}
+                />
+                <input
+                  value={v.dimensions || ""}
+                  onChange={(e) =>
+                    handleVariantChange(i, "dimensions", e.target.value)
+                  }
+                  placeholder="Dimensions"
+                  className="border px-2 py-1 w-full text-sm"
+                  disabled={updating}
+                />
+                <input
+                  value={v.realPrice}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  onChange={(e) =>
+                    handleVariantChange(i, "realPrice", e.target.value)
+                  }
+                  placeholder="Old Price"
+                  className="border px-2 py-1 w-full text-sm"
+                  disabled={updating}
+                />
+                <input
+                  value={v.price}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  onChange={(e) =>
+                    handleVariantChange(i, "price", e.target.value)
+                  }
+                  placeholder="Curr. Price"
+                  className="border px-2 py-1 w-full text-sm"
+                  disabled={updating}
+                />
+                <input
+                  value={v.discount}
+                  type="number"
+                  min={0}
+                  max={100}
+                  readOnly
+                  placeholder="Disc %"
+                  className="border px-2 py-1 w-full text-sm bg-gray-100"
+                  disabled={updating}
+                />
+              </div>
+
+              <div className="pt-2 border-t border-gray-200">
+                <label className="font-medium text-xs text-gray-600 mb-1 block">Variant Inventory Locations</label>
+                <div className="grid grid-cols-4 gap-2">
+                  <input
+                    value={v.locations?.downstairs || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "downstairs", e.target.value)}
+                    placeholder="Downstairs"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Downstairs"
+                    disabled={updating}
+                  />
+                  <input
+                    value={v.locations?.upstairs || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "upstairs", e.target.value)}
+                    placeholder="Upstairs"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Upstairs"
+                    disabled={updating}
+                  />
+                  <input
+                    value={v.locations?.store || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "store", e.target.value)}
+                    placeholder="Store"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Store"
+                    disabled={updating}
+                  />
+                  <input
+                    value={v.locations?.garage || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "garage", e.target.value)}
+                    placeholder="Garage"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Garage"
+                    disabled={updating}
+                  />
+                </div>
+                <div className="text-xs text-gray-600 font-semibold mt-2">
+                  Variant Total Stock: {
+                    (parseInt(v.locations?.downstairs) || 0) + 
+                    (parseInt(v.locations?.upstairs) || 0) + 
+                    (parseInt(v.locations?.store) || 0) + 
+                    (parseInt(v.locations?.garage) || 0)
+                  }
+                </div>
+              </div>
             </div>
           ))}
         </div>

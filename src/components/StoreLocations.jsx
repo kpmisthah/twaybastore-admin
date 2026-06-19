@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import BASE_URL from "../api/configadmin.js";
-import { FiBox, FiCheckCircle, FiDatabase, FiGrid, FiArrowDownCircle, FiArrowUpCircle, FiHome, FiTruck, FiSearch, FiRefreshCw, FiEdit2, FiCheck, FiX, FiChevronDown, FiDownload } from "react-icons/fi";
+import { FiBox, FiCheckCircle, FiDatabase, FiGrid, FiArrowDownCircle, FiArrowUpCircle, FiHome, FiTruck, FiSearch, FiRefreshCw, FiEdit2, FiCheck, FiX, FiChevronDown, FiDownload, FiPlusCircle, FiRepeat, FiShoppingCart, FiAlertTriangle } from "react-icons/fi";
 
 const LOCATIONS = ["downstairs", "upstairs", "store", "garage"];
 const TABS = ["master", ...LOCATIONS];
@@ -27,6 +27,9 @@ export default function StoreLocations() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Modal State
+  const [actionModal, setActionModal] = useState({ open: false, record: null });
 
   // Reset page when filters change
   useEffect(() => {
@@ -209,11 +212,12 @@ export default function StoreLocations() {
               <p className="text-gray-400 text-sm">Click "Sync Products" to pull in your existing products, or adjust your filters.</p>
             </div>
           ) : tab === "master" ? (
-            <MasterView records={records} />
+            <MasterView records={records} onManageStock={(r) => setActionModal({ open: true, record: r })} />
           ) : (
             <LocationView records={records}
               location={tab} editing={editing} saving={saving}
-              onStartEdit={startEdit} onCancelEdit={cancelEdit} onUpdateField={updateField} onSave={saveRecord} getTotal={getTotal} />
+              onStartEdit={startEdit} onCancelEdit={cancelEdit} onUpdateField={updateField} onSave={saveRecord} getTotal={getTotal}
+              onManageStock={(r) => setActionModal({ open: true, record: r })} />
           )}
 
           {/* Pagination */}
@@ -235,13 +239,25 @@ export default function StoreLocations() {
 
       </div>
 
+      {actionModal.open && (
+        <ManageStockModal 
+          record={actionModal.record} 
+          onClose={() => setActionModal({ open: false, record: null })} 
+          onSuccess={() => {
+            setSnack({ msg: "Stock action recorded successfully!", type: "info" });
+            fetchRecords();
+            setActionModal({ open: false, record: null });
+          }}
+        />
+      )}
+
       {snack && <Snack {...snack} onClose={() => setSnack(null)} />}
     </div>
   );
 }
 
 /* ═══════ MASTER VIEW ═══════ */
-function MasterView({ records }) {
+function MasterView({ records, onManageStock }) {
   return (
     <>
       <div className="w-full overflow-x-auto pb-2">
@@ -258,6 +274,7 @@ function MasterView({ records }) {
                 </th>
               ))}
               <th className="text-center px-4 py-3.5 font-bold text-indigo-700 text-xs uppercase tracking-wide">Total</th>
+              <th className="text-center px-4 py-3.5 font-semibold text-gray-700 text-xs uppercase tracking-wide">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -291,6 +308,12 @@ function MasterView({ records }) {
                   <td className="text-center px-4 py-3">
                     <span className={`font-bold px-2.5 py-1 rounded-lg text-sm ${total > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{total}</span>
                   </td>
+                  <td className="text-center px-4 py-3">
+                    <button onClick={() => onManageStock(r)}
+                      className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm whitespace-nowrap flex items-center gap-1 mx-auto">
+                      <FiBox className="w-3.5 h-3.5" /> Manage
+                    </button>
+                  </td>
                 </tr>
               );
             })}
@@ -302,7 +325,7 @@ function MasterView({ records }) {
 }
 
 /* ═══════ LOCATION VIEW ═══════ */
-function LocationView({ records, location, editing, saving, onStartEdit, onCancelEdit, onUpdateField, onSave, getTotal }) {
+function LocationView({ records, location, editing, saving, onStartEdit, onCancelEdit, onUpdateField, onSave, getTotal, onManageStock }) {
   const meta = TAB_META[location];
   return (
     <>
@@ -367,7 +390,11 @@ function LocationView({ records, location, editing, saving, onStartEdit, onCance
                         </button>
                       </div>
                     ) : (
-                      <div className="flex justify-end sm:justify-center">
+                      <div className="flex justify-end sm:justify-center gap-2">
+                        <button onClick={() => onManageStock(r)}
+                          className="h-8 px-2 sm:px-3 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm flex items-center gap-1">
+                          <FiBox className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Manage</span>
+                        </button>
                         <button onClick={() => onStartEdit(r._id, { ...r.locations })}
                           className={`h-8 px-2 sm:px-3 ${meta.bg} ${meta.text} rounded-lg text-xs font-bold hover:opacity-80 transition flex items-center gap-1 shadow-sm`}>
                           <FiEdit2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Edit</span>
@@ -391,6 +418,209 @@ function Snack({ msg, type, onClose }) {
   return (
     <div className={`fixed bottom-4 right-4 left-4 sm:left-auto sm:min-w-[300px] px-5 py-3 rounded-xl shadow-2xl text-white font-medium z-50 text-sm ${type === "error" ? "bg-red-600" : "bg-indigo-600"}`}>
       {msg}
+    </div>
+  );
+}
+
+/* ═══════ MANAGE STOCK MODAL ═══════ */
+function ManageStockModal({ record, onClose, onSuccess }) {
+  const [action, setAction] = useState("add_stock");
+  const [fromLoc, setFromLoc] = useState("downstairs");
+  const [toLoc, setToLoc] = useState("store");
+  const [qty, setQty] = useState("");
+  const [channel, setChannel] = useState("shop");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!qty || parseInt(qty) <= 0) {
+      setError("Please enter a valid quantity.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    const payload = {
+      productId: record.product._id,
+      variantId: record.variantId,
+      actionType: action,
+      quantity: parseInt(qty),
+    };
+
+    if (action === "add_stock") {
+      payload.toLocation = toLoc;
+    } else if (action === "move") {
+      payload.fromLocation = fromLoc;
+      payload.toLocation = toLoc;
+    } else if (action === "adjustment") {
+      payload.fromLocation = fromLoc;
+    } else if (action === "sale") {
+      payload.fromLocation = fromLoc;
+      payload.channel = channel;
+    }
+
+    try {
+      await axios.post(`${BASE_URL}/admin/store-inventory/action`, payload);
+      onSuccess();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to process action");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const actionTypes = [
+    { id: "add_stock", icon: <FiPlusCircle />, label: "Add Stock", desc: "Supplier delivery (Increases total)" },
+    { id: "move", icon: <FiRepeat />, label: "Move", desc: "Transfer between rooms (Total stays same)" },
+    { id: "sale", icon: <FiShoppingCart />, label: "Record Sale", desc: "Sold via Shop/Wolt (Records Revenue)" },
+    { id: "adjustment", icon: <FiAlertTriangle />, label: "Damage / Loss", desc: "Lost/Damaged items (No Revenue)" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h2 className="text-xl font-extrabold text-gray-800 flex items-center gap-2">
+            <FiBox className="text-indigo-600" /> Manage Stock
+          </h2>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition">
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto">
+          {/* Product Info Summary */}
+          <div className="mb-6 flex items-center gap-3 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+            <img src={record.product?.images?.[0]} className="w-12 h-12 rounded-lg object-cover bg-white" alt="" />
+            <div>
+              <p className="font-bold text-sm text-indigo-900 line-clamp-1">{record.product?.name}</p>
+              <p className="text-xs font-medium text-indigo-600 mt-0.5 uppercase tracking-wide">Variant: {record.variant === 'default' ? 'Standard' : record.variant}</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Action Selection */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">What are you doing?</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {actionTypes.map(a => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setAction(a.id)}
+                    className={`flex flex-col items-start p-3 border-2 rounded-xl text-left transition ${action === a.id ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                  >
+                    <div className={`flex items-center gap-2 font-bold ${action === a.id ? 'text-indigo-700' : 'text-gray-700'}`}>
+                      {a.icon} {a.label}
+                    </div>
+                    <div className={`text-xs mt-1 ${action === a.id ? 'text-indigo-600/80' : 'text-gray-500'}`}>{a.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dynamic Fields based on Action */}
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
+              
+              {/* Add Stock Fields */}
+              {action === "add_stock" && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Add to which location?</label>
+                  <select value={toLoc} onChange={e => setToLoc(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600">
+                    {LOCATIONS.map(l => <option key={l} value={l}>{TAB_META[l].label} (Current: {record.locations[l] || 0})</option>)}
+                  </select>
+                </div>
+              )}
+
+              {/* Move Fields */}
+              {action === "move" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Take From</label>
+                    <select value={fromLoc} onChange={e => setFromLoc(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600">
+                      {LOCATIONS.map(l => <option key={l} value={l}>{TAB_META[l].label} ({record.locations[l] || 0})</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Move To</label>
+                    <select value={toLoc} onChange={e => setToLoc(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600">
+                      {LOCATIONS.filter(l => l !== fromLoc).map(l => <option key={l} value={l}>{TAB_META[l].label}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Sale Fields */}
+              {action === "sale" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Sold Via (Channel)</label>
+                    <div className="flex gap-3">
+                      <label className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 rounded-lg cursor-pointer font-bold transition ${channel === 'shop' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-600'}`}>
+                        <input type="radio" name="channel" value="shop" checked={channel === 'shop'} onChange={() => setChannel('shop')} className="hidden" />
+                        <FiHome /> Physical Shop
+                      </label>
+                      <label className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 rounded-lg cursor-pointer font-bold transition ${channel === 'wolt' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 text-gray-600'}`}>
+                        <input type="radio" name="channel" value="wolt" checked={channel === 'wolt'} onChange={() => setChannel('wolt')} className="hidden" />
+                        <FiTruck /> Wolt
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Take Stock From</label>
+                    <select value={fromLoc} onChange={e => setFromLoc(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600">
+                      {LOCATIONS.map(l => <option key={l} value={l}>{TAB_META[l].label} (Current: {record.locations[l] || 0})</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {/* Adjustment Fields */}
+              {action === "adjustment" && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Remove From Location</label>
+                  <select value={fromLoc} onChange={e => setFromLoc(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600">
+                    {LOCATIONS.map(l => <option key={l} value={l}>{TAB_META[l].label} (Current: {record.locations[l] || 0})</option>)}
+                  </select>
+                </div>
+              )}
+
+              {/* Universal Quantity */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Quantity</label>
+                <div className="relative">
+                  <input 
+                    type="number" min="1" 
+                    value={qty} onChange={e => setQty(e.target.value)}
+                    placeholder="Enter amount..."
+                    className="w-full p-3 pl-4 bg-white border border-gray-300 rounded-lg font-mono font-bold text-lg focus:ring-2 focus:ring-indigo-600 outline-none" 
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            {error && <div className="text-red-600 bg-red-50 p-3 rounded-lg text-sm font-bold border border-red-200">{error}</div>}
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button 
+                type="submit" disabled={loading}
+                className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-extrabold text-lg shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? <FiRefreshCw className="animate-spin" /> : <FiCheckCircle />}
+                Confirm Action
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

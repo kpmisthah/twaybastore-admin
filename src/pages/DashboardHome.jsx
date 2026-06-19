@@ -21,6 +21,9 @@ import {
   FiTrendingUp,
   FiDollarSign,
   FiActivity,
+  FiHome,
+  FiTruck,
+  FiGlobe
 } from "react-icons/fi";
 
 import BASE_URL from "../api/configadmin.js";
@@ -36,6 +39,11 @@ const DashboardHome = () => {
     categoryCounts: [],
     recentOrders: [],
     salesData: [],
+    revenueData: [],
+    todayRevenue: { total: 0, website: 0, shop: 0, wolt: 0 },
+    totalWebsiteRevenue: 0,
+    totalShopRevenue: 0,
+    totalWoltRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -46,10 +54,11 @@ const DashboardHome = () => {
         const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [ordersRes, usersRes, productsRes] = await Promise.all([
+        const [ordersRes, usersRes, productsRes, revenueRes] = await Promise.all([
           axios.get(`${BASE_URL}/orders/admin/orders`, { headers }),
           axios.get(`${BASE_URL}/users`, { headers }),
           axios.get(`${BASE_URL}/products?limit=1000`, { headers }),
+          axios.get(`${BASE_URL}/analytics/revenue`, { headers }),
         ]);
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
@@ -58,7 +67,19 @@ const DashboardHome = () => {
         const products = Array.isArray(productsData) ? productsData : [];
 
         // Calculate Revenue
-        const revenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+        let totalWebsiteRevenue = 0;
+        let totalShopRevenue = 0;
+        let totalWoltRevenue = 0;
+
+        const revenue = orders.reduce((sum, o) => {
+          const amount = o.total || 0;
+          const ch = o.channel?.toLowerCase() || "website";
+          if (ch === "shop") totalShopRevenue += amount;
+          else if (ch === "wolt") totalWoltRevenue += amount;
+          else totalWebsiteRevenue += amount;
+          return sum + amount;
+        }, 0);
+        
         const avgValue = orders.length > 0 ? revenue / orders.length : 0;
 
         // Process Category Data
@@ -98,6 +119,67 @@ const DashboardHome = () => {
           amount: Number(amount.toFixed(2)),
         }));
 
+        // Process Revenue Data
+        const revData = Array.isArray(revenueRes.data) ? revenueRes.data : [];
+        const sortedRevData = [...revData].reverse(); // oldest first for charts
+        
+        const chartData = sortedRevData.map(r => ({
+          date: r.date,
+          Website: r.channels.website || 0,
+          Shop: r.channels.shop || 0,
+          Wolt: r.channels.wolt || 0,
+          total: r.total || 0
+        }));
+
+        // Get Today's Revenue (using Malta timezone string YYYY-MM-DD)
+        const getMaltaDate = () => {
+          const now = new Date();
+          const formatter = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Europe/Malta",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          });
+          const parts = formatter.formatToParts(now);
+          const p = {};
+          parts.forEach((part) => (p[part.type] = part.value));
+          
+          let year = parseInt(p.year);
+          let month = parseInt(p.month);
+          let day = parseInt(p.day);
+          let hour = parseInt(p.hour);
+
+          // If before 7 AM (which means after 7 PM previous night in business logic?), wait no, the 7PM rule is:
+          // If hour >= 19 (7 PM), it counts for TOMORROW.
+          if (hour >= 19) {
+            const tempDate = new Date(Date.UTC(year, month - 1, day));
+            tempDate.setUTCDate(tempDate.getUTCDate() + 1);
+            year = tempDate.getUTCFullYear();
+            month = tempDate.getUTCMonth() + 1;
+            day = tempDate.getUTCDate();
+          }
+
+          const pad = (n) => String(n).padStart(2, "0");
+          return `${year}-${pad(month)}-${pad(day)}`;
+        };
+
+        const todayDateStr = getMaltaDate();
+        let todayRevenue = { total: 0, website: 0, shop: 0, wolt: 0 };
+        
+        const todayRecord = revData.find(r => r.date === todayDateStr);
+        if (todayRecord) {
+          todayRevenue = {
+            total: todayRecord.total || 0,
+            website: todayRecord.channels.website || 0,
+            shop: todayRecord.channels.shop || 0,
+            wolt: todayRecord.channels.wolt || 0
+          };
+        }
+
         setStats({
           totalOrders: orders.length,
           totalUsers: users.length,
@@ -106,6 +188,11 @@ const DashboardHome = () => {
           categoryCounts: categoryData,
           recentOrders: orders.length > 5 ? orders.slice(0, 5) : orders,
           salesData: salesTimeline,
+          revenueData: chartData,
+          todayRevenue: todayRevenue,
+          totalWebsiteRevenue,
+          totalShopRevenue,
+          totalWoltRevenue,
         });
       } catch (e) {
         console.error("Dashboard data fetch error:", e);
@@ -144,6 +231,58 @@ const DashboardHome = () => {
       icon: <FiTrendingUp className="w-6 h-6" />,
       color: "bg-purple-500",
       trend: "Stable",
+    },
+    {
+      label: "Total Website Revenue",
+      value: `€${(stats.totalWebsiteRevenue || 0).toLocaleString()}`,
+      icon: <FiGlobe className="w-6 h-6" />,
+      color: "bg-indigo-500",
+      trend: "Online",
+    },
+    {
+      label: "Total Shop Revenue",
+      value: `€${(stats.totalShopRevenue || 0).toLocaleString()}`,
+      icon: <FiHome className="w-6 h-6" />,
+      color: "bg-amber-500",
+      trend: "Physical",
+    },
+    {
+      label: "Total Wolt Revenue",
+      value: `€${(stats.totalWoltRevenue || 0).toLocaleString()}`,
+      icon: <FiTruck className="w-6 h-6" />,
+      color: "bg-cyan-500",
+      trend: "Delivery",
+    },
+  ];
+
+  const multiChannelKpis = [
+    {
+      label: "Today's Total",
+      value: `€${stats.todayRevenue.total.toLocaleString()}`,
+      icon: <FiDollarSign className="w-6 h-6" />,
+      color: "bg-blue-600",
+      trend: "All Channels",
+    },
+    {
+      label: "Today's Website",
+      value: `€${stats.todayRevenue.website.toLocaleString()}`,
+      icon: <FiGlobe className="w-6 h-6" />,
+      color: "bg-indigo-500",
+      trend: "Online",
+    },
+    {
+      label: "Today's Shop",
+      value: `€${stats.todayRevenue.shop.toLocaleString()}`,
+      icon: <FiHome className="w-6 h-6" />,
+      color: "bg-amber-500",
+      trend: "Physical",
+    },
+    {
+      label: "Today's Wolt",
+      value: `€${stats.todayRevenue.wolt.toLocaleString()}`,
+      icon: <FiTruck className="w-6 h-6" />,
+      color: "bg-sky-500",
+      trend: "Delivery",
     },
   ];
 
@@ -274,6 +413,112 @@ const DashboardHome = () => {
                 <span className="font-bold text-gray-900">{cat.value}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Multi-Channel Dashboard Section */}
+      <div className="mt-12 pt-12 border-t border-gray-200">
+        <header className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <FiActivity className="text-indigo-600" /> Multi-Channel Revenue
+          </h2>
+          <p className="text-gray-500 text-sm mt-1">Track sales across your Website, Shop POS, and Wolt based on Malta timezone dates.</p>
+        </header>
+
+        {/* Today's Multi-Channel Summary Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Today's Revenue Flow</h3>
+              <p className="text-sm text-gray-500 mt-1">Live breakdown of today's sales across all channels.</p>
+            </div>
+            <div className="mt-4 md:mt-0 text-left md:text-right bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
+              <p className="text-sm font-medium text-blue-600 uppercase tracking-wider mb-1">Total Today</p>
+              <h3 className="text-3xl font-extrabold text-blue-900">€{stats.todayRevenue.total.toLocaleString()}</h3>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-indigo-50/50 rounded-xl p-5 flex items-center border border-indigo-100/50 hover:bg-indigo-50 transition-colors">
+              <div className="p-4 bg-indigo-500 rounded-xl text-white mr-5 shadow-sm shadow-indigo-200">
+                <FiGlobe className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-indigo-600 font-bold uppercase tracking-wider mb-1">Website Sales</p>
+                <p className="text-2xl font-black text-gray-900">€{stats.todayRevenue.website.toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="bg-amber-50/50 rounded-xl p-5 flex items-center border border-amber-100/50 hover:bg-amber-50 transition-colors">
+              <div className="p-4 bg-amber-500 rounded-xl text-white mr-5 shadow-sm shadow-amber-200">
+                <FiHome className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-amber-600 font-bold uppercase tracking-wider mb-1">Shop POS</p>
+                <p className="text-2xl font-black text-gray-900">€{stats.todayRevenue.shop.toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="bg-cyan-50/50 rounded-xl p-5 flex items-center border border-cyan-100/50 hover:bg-cyan-50 transition-colors">
+              <div className="p-4 bg-cyan-500 rounded-xl text-white mr-5 shadow-sm shadow-cyan-200">
+                <FiTruck className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-cyan-600 font-bold uppercase tracking-wider mb-1">Wolt Delivery</p>
+                <p className="text-2xl font-black text-gray-900">€{stats.todayRevenue.wolt.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stacked Chart */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Revenue Breakdown</h3>
+              <p className="text-xs text-gray-500 italic">Daily channel split (Last 30 business dates)</p>
+            </div>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats.revenueData}>
+                <defs>
+                  <linearGradient id="colorWebsite" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorShop" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorWolt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  minTickGap={20}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  tickFormatter={(val) => `€${val}`}
+                />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Area type="monotone" dataKey="Website" stackId="1" stroke="#6366f1" strokeWidth={2} fill="url(#colorWebsite)" />
+                <Area type="monotone" dataKey="Shop" stackId="1" stroke="#f59e0b" strokeWidth={2} fill="url(#colorShop)" />
+                <Area type="monotone" dataKey="Wolt" stackId="1" stroke="#0ea5e9" strokeWidth={2} fill="url(#colorWolt)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

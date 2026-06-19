@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BASE_URL from "../api/config";
+import { FiMapPin, FiCheckCircle, FiX } from "react-icons/fi";
+
+const LOCATIONS = ["downstairs", "upstairs", "store", "garage"];
 
 const STATUS_OPTIONS = ["Processing", "Packed", "Delivered", "Cancelled"];
 const STATUS_COLORS = {
@@ -38,6 +41,7 @@ const AdminOrders = () => {
   const [inputOrderId, setInputOrderId] = useState({});
   const [error, setError] = useState({});
   const [copied, setCopied] = useState({});
+  const [fulfillModal, setFulfillModal] = useState({ open: false, order: null });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -128,7 +132,7 @@ const AdminOrders = () => {
                   <select
                     className="bg-transparent outline-none"
                     value={order.status}
-                    disabled={!statusWindow || pending === order._id}
+                    disabled={!statusWindow || pending === order._id || (!order.isFulfilled && order.status === "Processing")}
                     onChange={(e) => handleStatusChange(order, e.target.value)}
                   >
                     {STATUS_OPTIONS.map((s) => (
@@ -139,6 +143,21 @@ const AdminOrders = () => {
                   </select>
                 </div>
               </div>
+
+              {!order.isFulfilled && order.status === "Processing" && (
+                <div className="mt-3 bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-sm font-bold flex items-center gap-1.5"><FiMapPin /> Locations must be allocated before shipping</span>
+                  <button onClick={() => setFulfillModal({ open: true, order })} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm hover:bg-red-700 transition">
+                    Allocate Stock
+                  </button>
+                </div>
+              )}
+
+              {order.isFulfilled && (
+                <div className="mt-2 text-xs text-green-700 font-bold flex items-center gap-1">
+                  <FiCheckCircle /> Stock Allocated
+                </div>
+              )}
 
               {/* Confirm + Copy */}
               <div className="mt-2 flex items-center gap-2">
@@ -240,6 +259,11 @@ const AdminOrders = () => {
                       <span className="ml-2">
                         x {item.qty} — €{(item.price * item.qty).toFixed(2)}
                       </span>
+                      {order.isFulfilled && item.fulfilledLocations && item.fulfilledLocations.length > 0 && (
+                        <div className="mt-1 text-xs text-gray-500 bg-gray-50 border border-gray-100 p-1.5 rounded inline-block">
+                          Taken from: {item.fulfilledLocations.map(l => `${l.location} (${l.quantity})`).join(", ")}
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -294,8 +318,134 @@ const AdminOrders = () => {
           <div className="text-center text-gray-500 mt-12">No orders yet.</div>
         )}
       </div>
+
+      {fulfillModal.open && (
+        <FulfillOrderModal
+          order={fulfillModal.order}
+          onClose={() => setFulfillModal({ open: false, order: null })}
+          onSuccess={(updatedOrder) => {
+            setOrders(old => old.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+            setFulfillModal({ open: false, order: null });
+          }}
+        />
+      )}
     </div>
   );
 };
+
+/* ═══════ FULFILL ORDER MODAL ═══════ */
+function FulfillOrderModal({ order, onClose, onSuccess }) {
+  const [data, setData] = useState(
+    order.items.map(item => ({
+      itemId: item._id,
+      name: item.name,
+      required: item.qty,
+      locations: { downstairs: 0, upstairs: 0, store: 0, garage: 0 }
+    }))
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLocChange = (index, loc, val) => {
+    const newData = [...data];
+    newData[index].locations[loc] = Math.max(0, parseInt(val) || 0);
+    setData(newData);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // Validate sums
+    for (const item of data) {
+      const sum = LOCATIONS.reduce((acc, l) => acc + item.locations[l], 0);
+      if (sum !== item.required) {
+        return setError(`You must allocate exactly ${item.required} items for "${item.name}". Currently allocated: ${sum}`);
+      }
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const payload = data.map(d => ({
+        itemId: d.itemId,
+        locations: d.locations
+      }));
+
+      const res = await axios.post(`${BASE_URL}/orders/${order._id}/fulfill`, {
+        fulfillmentData: payload
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      onSuccess(res.data.order);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to fulfill order");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <FiMapPin className="text-red-600" /> Allocate Inventory Locations
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-5 overflow-y-auto">
+          <p className="text-sm text-gray-600 mb-4 font-medium">
+            Where are you taking these items from? Specify the quantities for each location. You cannot process this order until allocations match the order quantity.
+          </p>
+
+          <form id="fulfill-form" onSubmit={handleSubmit} className="space-y-6">
+            {data.map((item, index) => {
+              const currentSum = LOCATIONS.reduce((acc, l) => acc + item.locations[l], 0);
+              const isMatch = currentSum === item.required;
+
+              return (
+                <div key={item.itemId} className={`p-4 rounded-lg border ${isMatch ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="font-bold text-sm text-gray-800">{item.name}</span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded ${isMatch ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      Allocated: {currentSum} / {item.required}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {LOCATIONS.map(loc => (
+                      <div key={loc}>
+                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">{loc}</label>
+                        <input
+                          type="number" min="0"
+                          value={item.locations[loc] || ""}
+                          onChange={e => handleLocChange(index, loc, e.target.value)}
+                          className={`w-full px-2 py-1.5 border rounded-md text-sm font-mono focus:outline-none focus:ring-1 ${isMatch ? 'border-green-300 focus:ring-green-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </form>
+
+          {error && <div className="mt-4 text-red-600 bg-red-50 p-3 rounded text-sm font-bold border border-red-200">{error}</div>}
+        </div>
+
+        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded hover:bg-gray-50">Cancel</button>
+          <button type="submit" form="fulfill-form" disabled={loading} className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded hover:bg-red-700 flex items-center gap-2 disabled:opacity-50">
+            {loading ? "Processing..." : "Confirm Allocations"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default AdminOrders;

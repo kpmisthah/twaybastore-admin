@@ -274,7 +274,6 @@ function MasterView({ records, onManageStock }) {
                 </th>
               ))}
               <th className="text-center px-4 py-3.5 font-bold text-indigo-700 text-xs uppercase tracking-wide">Total</th>
-              <th className="text-center px-4 py-3.5 font-semibold text-gray-700 text-xs uppercase tracking-wide">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -307,12 +306,6 @@ function MasterView({ records, onManageStock }) {
                   ))}
                   <td className="text-center px-4 py-3">
                     <span className={`font-bold px-2.5 py-1 rounded-lg text-sm ${total > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{total}</span>
-                  </td>
-                  <td className="text-center px-4 py-3">
-                    <button onClick={() => onManageStock(r)}
-                      className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm whitespace-nowrap flex items-center gap-1 mx-auto">
-                      <FiBox className="w-3.5 h-3.5" /> Manage
-                    </button>
                   </td>
                 </tr>
               );
@@ -366,41 +359,15 @@ function LocationView({ records, location, editing, saving, onStartEdit, onCance
                     </span>
                   </td>
                   <td className="text-center px-2 sm:px-4 py-3">
-                    {isEdit ? (
-                      <div className="flex items-center justify-center">
-                        <input type="number" min="0" value={data[location] ?? 0}
-                          onChange={e => onUpdateField(r._id, location, e.target.value)}
-                          disabled={isSave}
-                          className={`w-14 sm:w-20 text-center px-1 py-1 sm:py-1.5 border-2 rounded-lg font-mono font-bold text-sm sm:text-base focus:outline-none focus:ring-2 ${meta.text} border-current focus:ring-current/20`} />
-                      </div>
-                    ) : (
-                      <span className={`font-mono font-bold text-base sm:text-lg ${meta.text}`}>{r.locations[location] || 0}</span>
-                    )}
+                    <span className={`font-mono font-bold text-base sm:text-lg ${meta.text}`}>{r.locations[location] || 0}</span>
                   </td>
                   <td className="text-right sm:text-center px-3 sm:px-4 py-3">
-                    {isEdit ? (
-                      <div className="flex items-center justify-end sm:justify-center gap-1.5">
-                        <button onClick={() => onSave(r._id)} disabled={isSave}
-                          className="h-8 px-2 sm:px-3 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition disabled:opacity-50 flex items-center justify-center shadow-sm">
-                          {isSave ? <FiRefreshCw className="animate-spin w-3.5 h-3.5" /> : <FiCheck className="w-4 h-4" />}
-                        </button>
-                        <button onClick={() => onCancelEdit(r._id)} disabled={isSave}
-                          className="h-8 w-8 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 hover:text-gray-900 transition disabled:opacity-50 flex items-center justify-center shadow-sm">
-                          <FiX className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex justify-end sm:justify-center gap-2">
-                        <button onClick={() => onManageStock(r)}
-                          className="h-8 px-2 sm:px-3 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm flex items-center gap-1">
-                          <FiBox className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Manage</span>
-                        </button>
-                        <button onClick={() => onStartEdit(r._id, { ...r.locations })}
-                          className={`h-8 px-2 sm:px-3 ${meta.bg} ${meta.text} rounded-lg text-xs font-bold hover:opacity-80 transition flex items-center gap-1 shadow-sm`}>
-                          <FiEdit2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Edit</span>
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex justify-end sm:justify-center">
+                      <button onClick={() => onManageStock(r)}
+                        className="h-8 px-2 sm:px-3 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm flex items-center gap-1">
+                        <FiBox className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Manage</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

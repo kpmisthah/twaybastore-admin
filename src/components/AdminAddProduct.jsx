@@ -45,6 +45,7 @@ const AdminAddProduct = ({ onDone }) => {
     sku: "",
     productCode: "",
     offerDuration: "", // NEW: 1-7 days
+    locations: { downstairs: "", upstairs: "", store: "", garage: "" },
   });
 
   const [variants, setVariants] = useState([]);
@@ -60,6 +61,18 @@ const AdminAddProduct = ({ onDone }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    if (["downstairs", "upstairs", "store", "garage"].includes(name)) {
+      setForm((prev) => ({
+        ...prev,
+        locations: {
+          ...prev.locations,
+          [name]: value
+        }
+      }));
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -78,7 +91,13 @@ const AdminAddProduct = ({ onDone }) => {
     setVariants((variants) =>
       variants.map((v, i) => {
         if (i !== idx) return v;
-        const updated = { ...v, [field]: value };
+        const updated = { ...v };
+        if (["downstairs", "upstairs", "store", "garage"].includes(field)) {
+          updated.locations = { ...updated.locations, [field]: value };
+          updated.stock = (parseInt(updated.locations.downstairs) || 0) + (parseInt(updated.locations.upstairs) || 0) + (parseInt(updated.locations.store) || 0) + (parseInt(updated.locations.garage) || 0);
+        } else {
+          updated[field] = value;
+        }
         if (field === "realPrice" || field === "price") {
           updated.discount = calcDiscount(
             field === "realPrice" ? value : v.realPrice,
@@ -97,6 +116,7 @@ const AdminAddProduct = ({ onDone }) => {
         color: "",
         dimensions: "",
         stock: "",
+        locations: { downstairs: "", upstairs: "", store: "", garage: "" },
         realPrice: "",
         price: "",
         discount: "",
@@ -127,9 +147,24 @@ const AdminAddProduct = ({ onDone }) => {
         realPrice: parseFloat(form.realPrice),
         price: parseFloat(form.price),
         discount: form.discount ? parseFloat(form.discount) : 0,
+        locations: {
+          downstairs: parseInt(form.locations.downstairs) || 0,
+          upstairs: parseInt(form.locations.upstairs) || 0,
+          store: parseInt(form.locations.store) || 0,
+          garage: parseInt(form.locations.garage) || 0,
+        },
         variants: variants.filter(
-          (v) => v.color && v.dimensions && v.stock && v.price
-        ),
+          (v) => v.color && v.dimensions && v.price
+        ).map(v => ({
+          ...v,
+          locations: {
+            downstairs: parseInt(v.locations?.downstairs) || 0,
+            upstairs: parseInt(v.locations?.upstairs) || 0,
+            store: parseInt(v.locations?.store) || 0,
+            garage: parseInt(v.locations?.garage) || 0,
+          },
+          stock: (parseInt(v.locations?.downstairs) || 0) + (parseInt(v.locations?.upstairs) || 0) + (parseInt(v.locations?.store) || 0) + (parseInt(v.locations?.garage) || 0)
+        })),
         images: imageUrls,
         offerExpiry: form.offerDuration
           ? new Date(Date.now() + parseInt(form.offerDuration) * 24 * 60 * 60 * 1000)
@@ -255,86 +290,182 @@ const AdminAddProduct = ({ onDone }) => {
           className="w-full border px-3 py-2"
         />
 
+        {/* Location Stock for Product without variants */}
+        {variants.length === 0 && (
+          <div className="bg-gray-50 p-3 rounded border">
+            <label className="font-medium text-sm mb-2 block">Inventory Locations (Base Stock)</label>
+            <div className="grid grid-cols-4 gap-2">
+              <input
+                name="downstairs"
+                type="number"
+                min={0}
+                value={form.locations.downstairs}
+                onChange={handleChange}
+                placeholder="Downstairs"
+                className="border px-2 py-1 w-full"
+              />
+              <input
+                name="upstairs"
+                type="number"
+                min={0}
+                value={form.locations.upstairs}
+                onChange={handleChange}
+                placeholder="Upstairs"
+                className="border px-2 py-1 w-full"
+              />
+              <input
+                name="store"
+                type="number"
+                min={0}
+                value={form.locations.store}
+                onChange={handleChange}
+                placeholder="Store"
+                className="border px-2 py-1 w-full"
+              />
+              <input
+                name="garage"
+                type="number"
+                min={0}
+                value={form.locations.garage}
+                onChange={handleChange}
+                placeholder="Garage"
+                className="border px-2 py-1 w-full"
+              />
+            </div>
+            <div className="mt-2 text-sm font-semibold">
+              Total Stock: {
+                (parseInt(form.locations.downstairs) || 0) +
+                (parseInt(form.locations.upstairs) || 0) +
+                (parseInt(form.locations.store) || 0) +
+                (parseInt(form.locations.garage) || 0)
+              }
+            </div>
+          </div>
+        )}
+
         {/* Variants */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-2">
             <label className="font-medium text-sm">
-              Variants (color / dimensions / stock / old price / curr. price / discount):
+              Product Variants:
             </label>
             <button
               type="button"
-              className="text-blue-600 text-xs"
+              className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-semibold hover:bg-blue-200"
               onClick={addVariant}
             >
               + Add Variant
             </button>
           </div>
           {variants.map((v, i) => (
-            <div className="flex gap-2 mb-1" key={i}>
-              <input
-                value={v.color}
-                onChange={(e) =>
-                  handleVariantChange(i, "color", e.target.value)
-                }
-                placeholder="Color"
-                className="border px-2 py-1 w-1/6"
-              />
-              <input
-                value={v.dimensions}
-                onChange={(e) =>
-                  handleVariantChange(i, "dimensions", e.target.value)
-                }
-                placeholder="Dimensions (e.g. 1.8m x 1m)"
-                className="border px-2 py-1 w-1/6"
-              />
-              <input
-                value={v.stock}
-                type="number"
-                min={0}
-                onChange={(e) =>
-                  handleVariantChange(i, "stock", e.target.value)
-                }
-                placeholder="Stock"
-                className="border px-2 py-1 w-1/6"
-              />
-              <input
-                value={v.realPrice || ""}
-                type="number"
-                min={0}
-                step="0.01"
-                onChange={(e) =>
-                  handleVariantChange(i, "realPrice", e.target.value)
-                }
-                placeholder="Old Price"
-                className="border px-2 py-1 w-1/6"
-              />
-              <input
-                value={v.price || ""}
-                type="number"
-                min={0}
-                step="0.01"
-                onChange={(e) =>
-                  handleVariantChange(i, "price", e.target.value)
-                }
-                placeholder="Curr. Price"
-                className="border px-2 py-1 w-1/6"
-              />
-              <input
-                value={v.discount || ""}
-                type="number"
-                min={0}
-                max={100}
-                readOnly
-                placeholder="%"
-                className="border px-2 py-1 w-1/6"
-              />
+            <div className="bg-gray-50 p-3 rounded border mb-3 relative" key={i}>
               <button
                 type="button"
                 onClick={() => removeVariant(i)}
-                className="text-red-600 text-xs ml-2"
+                className="absolute top-3 right-3 text-red-600 text-xs font-bold hover:underline"
               >
                 Remove
               </button>
+              
+              <div className="grid grid-cols-5 gap-2 pr-16 mb-3">
+                <input
+                  value={v.color}
+                  onChange={(e) =>
+                    handleVariantChange(i, "color", e.target.value)
+                  }
+                  placeholder="Color"
+                  className="border px-2 py-1 w-full text-sm"
+                />
+                <input
+                  value={v.dimensions}
+                  onChange={(e) =>
+                    handleVariantChange(i, "dimensions", e.target.value)
+                  }
+                  placeholder="Dimensions"
+                  className="border px-2 py-1 w-full text-sm"
+                />
+                <input
+                  value={v.realPrice || ""}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  onChange={(e) =>
+                    handleVariantChange(i, "realPrice", e.target.value)
+                  }
+                  placeholder="Old Price"
+                  className="border px-2 py-1 w-full text-sm"
+                />
+                <input
+                  value={v.price || ""}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  onChange={(e) =>
+                    handleVariantChange(i, "price", e.target.value)
+                  }
+                  placeholder="Curr. Price"
+                  className="border px-2 py-1 w-full text-sm"
+                />
+                <input
+                  value={v.discount || ""}
+                  type="number"
+                  min={0}
+                  max={100}
+                  readOnly
+                  placeholder="Disc %"
+                  className="border px-2 py-1 w-full text-sm bg-gray-100"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-gray-200">
+                <label className="font-medium text-xs text-gray-600 mb-1 block">Variant Inventory Locations</label>
+                <div className="grid grid-cols-4 gap-2">
+                  <input
+                    value={v.locations?.downstairs || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "downstairs", e.target.value)}
+                    placeholder="Downstairs"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Downstairs"
+                  />
+                  <input
+                    value={v.locations?.upstairs || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "upstairs", e.target.value)}
+                    placeholder="Upstairs"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Upstairs"
+                  />
+                  <input
+                    value={v.locations?.store || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "store", e.target.value)}
+                    placeholder="Store"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Store"
+                  />
+                  <input
+                    value={v.locations?.garage || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "garage", e.target.value)}
+                    placeholder="Garage"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Garage"
+                  />
+                </div>
+                <div className="text-xs text-gray-600 font-semibold mt-2">
+                  Variant Total Stock: {
+                    (parseInt(v.locations?.downstairs) || 0) + 
+                    (parseInt(v.locations?.upstairs) || 0) + 
+                    (parseInt(v.locations?.store) || 0) + 
+                    (parseInt(v.locations?.garage) || 0)
+                  }
+                </div>
+              </div>
             </div>
           ))}
         </div>

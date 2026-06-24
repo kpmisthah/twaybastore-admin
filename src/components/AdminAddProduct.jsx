@@ -43,8 +43,8 @@ const AdminAddProduct = ({ onDone }) => {
     warranty: "",
     countryOfOrigin: "Malta",
     sku: "",
-    productCode: "",
     offerDuration: "", // NEW: 1-7 days
+    woltId: "",
     locations: { downstairs: "", upstairs: "", store: "", garage: "" },
   });
 
@@ -120,6 +120,7 @@ const AdminAddProduct = ({ onDone }) => {
         realPrice: "",
         price: "",
         discount: "",
+        woltId: "",
       },
     ]);
 
@@ -289,6 +290,13 @@ const AdminAddProduct = ({ onDone }) => {
           placeholder="Unique Product Code (for Google Sheets sync) (optional)"
           className="w-full border px-3 py-2"
         />
+        <input
+          name="woltId"
+          value={form.woltId}
+          onChange={handleChange}
+          placeholder="Wolt ID (optional)"
+          className="w-full border px-3 py-2"
+        />
 
         {/* Location Stock for Product without variants */}
         {variants.length === 0 && (
@@ -382,6 +390,14 @@ const AdminAddProduct = ({ onDone }) => {
                     handleVariantChange(i, "dimensions", e.target.value)
                   }
                   placeholder="Dimensions"
+                  className="border px-2 py-1 w-full text-sm"
+                />
+                <input
+                  value={v.woltId || ""}
+                  onChange={(e) =>
+                    handleVariantChange(i, "woltId", e.target.value)
+                  }
+                  placeholder="Wolt ID"
                   className="border px-2 py-1 w-full text-sm"
                 />
                 <input

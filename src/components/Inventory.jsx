@@ -99,6 +99,24 @@ const Inventory = () => {
     }
   };
 
+  const handleWoltExport = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/products/export-wolt`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "wolt_inventory.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Wolt export failed:", error);
+      alert("Wolt export failed");
+    }
+  };
+
   // For counter defaults (avoid undefined)
   const getQty = (key) => quantity[key] || 1;
 
@@ -109,26 +127,48 @@ const Inventory = () => {
           <h2 className="text-3xl font-extrabold tracking-tight text-gray-800">
             Inventory Management
           </h2>
-          <button
-            onClick={handleExport}
-            className="px-4 py-2 bg-green-600 text-white rounded-xl font-semibold shadow-sm hover:bg-green-700 transition flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex gap-3">
+            <button
+              onClick={handleWoltExport}
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold shadow-sm hover:bg-blue-700 transition flex items-center gap-2"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Export to Excel
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Export to Wolt
+            </button>
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 bg-green-600 text-white rounded-xl font-semibold shadow-sm hover:bg-green-700 transition flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Export to Excel
+            </button>
+          </div>
         </div>
 
         <div className="mb-6">

@@ -94,6 +94,25 @@ export default function StoreLocations() {
     setSnack({ msg: "Downloading Excel file...", type: "info" });
   };
 
+  const handleWoltExport = async () => {
+    setSnack({ msg: "Downloading Wolt inventory...", type: "info" });
+    try {
+      const res = await axios.get(`${BASE_URL}/products/export-wolt`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "wolt_inventory.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Wolt export failed:", error);
+      setSnack({ msg: "Wolt export failed", type: "error" });
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 py-4 px-3 md:py-8 md:px-6">
       <div className="max-w-7xl mx-auto">
@@ -192,9 +211,14 @@ export default function StoreLocations() {
                 </button>
               </div>
             )}
-            <button onClick={handleExport} className="w-full sm:w-auto px-4 py-2.5 md:py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-sm md:text-xs whitespace-nowrap flex items-center justify-center gap-2 hover:bg-emerald-100 transition shadow-sm">
-              <FiDownload className="w-4 h-4" /> Export to Excel
-            </button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button onClick={handleWoltExport} className="flex-1 sm:flex-none px-4 py-2.5 md:py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl font-bold text-sm md:text-xs whitespace-nowrap flex items-center justify-center gap-2 hover:bg-blue-100 transition shadow-sm">
+                <FiDownload className="w-4 h-4" /> Export to Wolt
+              </button>
+              <button onClick={handleExport} className="flex-1 sm:flex-none px-4 py-2.5 md:py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-sm md:text-xs whitespace-nowrap flex items-center justify-center gap-2 hover:bg-emerald-100 transition shadow-sm">
+                <FiDownload className="w-4 h-4" /> Export to Excel
+              </button>
+            </div>
           </div>
         </div>
 

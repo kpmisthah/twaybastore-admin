@@ -45,7 +45,7 @@ const AdminAddProduct = ({ onDone }) => {
     sku: "",
     offerDuration: "", // NEW: 1-7 days
     woltId: "",
-    locations: { downstairs: "", upstairs: "", store: "", garage: "" },
+    locations: { downstairs: "", upstairs: "", store: "", mosta_garage: "" , naxxar_garage: ""  },
   });
 
   const [variants, setVariants] = useState([]);
@@ -62,7 +62,7 @@ const AdminAddProduct = ({ onDone }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    if (["downstairs", "upstairs", "store", "garage"].includes(name)) {
+    if (["downstairs", "upstairs", "store", "mosta_garage", "naxxar_garage"].includes(name)) {
       setForm((prev) => ({
         ...prev,
         locations: {
@@ -92,9 +92,9 @@ const AdminAddProduct = ({ onDone }) => {
       variants.map((v, i) => {
         if (i !== idx) return v;
         const updated = { ...v };
-        if (["downstairs", "upstairs", "store", "garage"].includes(field)) {
+        if (["downstairs", "upstairs", "store", "mosta_garage", "naxxar_garage"].includes(field)) {
           updated.locations = { ...updated.locations, [field]: value };
-          updated.stock = (parseInt(updated.locations.downstairs) || 0) + (parseInt(updated.locations.upstairs) || 0) + (parseInt(updated.locations.store) || 0) + (parseInt(updated.locations.garage) || 0);
+          updated.stock = (parseInt(updated.locations.downstairs) || 0) + (parseInt(updated.locations.upstairs) || 0) + (parseInt(updated.locations.store) || 0) + (parseInt(updated.locations.mosta_garage) || 0) + (parseInt(updated.locations.naxxar_garage) || 0);
         } else {
           updated[field] = value;
         }
@@ -116,7 +116,7 @@ const AdminAddProduct = ({ onDone }) => {
         color: "",
         dimensions: "",
         stock: "",
-        locations: { downstairs: "", upstairs: "", store: "", garage: "" },
+        locations: { downstairs: "", upstairs: "", store: "", mosta_garage: "" , naxxar_garage: ""  },
         realPrice: "",
         price: "",
         discount: "",
@@ -152,7 +152,8 @@ const AdminAddProduct = ({ onDone }) => {
           downstairs: parseInt(form.locations.downstairs) || 0,
           upstairs: parseInt(form.locations.upstairs) || 0,
           store: parseInt(form.locations.store) || 0,
-          garage: parseInt(form.locations.garage) || 0,
+          mosta_garage: parseInt(form.locations.mosta_garage) || 0,
+          naxxar_garage: parseInt(form.locations.naxxar_garage) || 0,
         },
         variants: variants.filter(
           (v) => v.color && v.dimensions && v.price
@@ -162,9 +163,10 @@ const AdminAddProduct = ({ onDone }) => {
             downstairs: parseInt(v.locations?.downstairs) || 0,
             upstairs: parseInt(v.locations?.upstairs) || 0,
             store: parseInt(v.locations?.store) || 0,
-            garage: parseInt(v.locations?.garage) || 0,
+            mosta_garage: parseInt(v.locations?.mosta_garage) || 0,
+              naxxar_garage: parseInt(v.locations?.naxxar_garage) || 0,
           },
-          stock: (parseInt(v.locations?.downstairs) || 0) + (parseInt(v.locations?.upstairs) || 0) + (parseInt(v.locations?.store) || 0) + (parseInt(v.locations?.garage) || 0)
+          stock: (parseInt(v.locations?.downstairs) || 0) + (parseInt(v.locations?.upstairs) || 0) + (parseInt(v.locations?.store) || 0) + (parseInt(v.locations?.mosta_garage) || 0) + (parseInt(v.locations?.naxxar_garage) || 0)
         })),
         images: imageUrls,
         offerExpiry: form.offerDuration
@@ -302,7 +304,7 @@ const AdminAddProduct = ({ onDone }) => {
         {variants.length === 0 && (
           <div className="bg-gray-50 p-3 rounded border">
             <label className="font-medium text-sm mb-2 block">Inventory Locations (Base Stock)</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               <input
                 name="downstairs"
                 type="number"
@@ -331,12 +333,21 @@ const AdminAddProduct = ({ onDone }) => {
                 className="border px-2 py-1 w-full"
               />
               <input
-                name="garage"
+                name="mosta_garage"
                 type="number"
                 min={0}
-                value={form.locations.garage}
+                value={form.locations.mosta_garage}
                 onChange={handleChange}
-                placeholder="Garage"
+                placeholder="Mosta Garage"
+                className="border px-2 py-1 w-full"
+              />
+              <input
+                name="naxxar_garage"
+                type="number"
+                min={0}
+                value={form.locations.naxxar_garage}
+                onChange={handleChange}
+                placeholder="Naxxar Garage"
                 className="border px-2 py-1 w-full"
               />
             </div>
@@ -345,7 +356,8 @@ const AdminAddProduct = ({ onDone }) => {
                 (parseInt(form.locations.downstairs) || 0) +
                 (parseInt(form.locations.upstairs) || 0) +
                 (parseInt(form.locations.store) || 0) +
-                (parseInt(form.locations.garage) || 0)
+                (parseInt(form.locations.mosta_garage) || 0) +
+                (parseInt(form.locations.naxxar_garage) || 0)
               }
             </div>
           </div>
@@ -435,7 +447,7 @@ const AdminAddProduct = ({ onDone }) => {
 
               <div className="pt-2 border-t border-gray-200">
                 <label className="font-medium text-xs text-gray-600 mb-1 block">Variant Inventory Locations</label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   <input
                     value={v.locations?.downstairs || ""}
                     type="number"
@@ -464,13 +476,22 @@ const AdminAddProduct = ({ onDone }) => {
                     title="Store"
                   />
                   <input
-                    value={v.locations?.garage || ""}
+                    value={v.locations?.mosta_garage || ""}
                     type="number"
                     min={0}
-                    onChange={(e) => handleVariantChange(i, "garage", e.target.value)}
-                    placeholder="Garage"
+                    onChange={(e) => handleVariantChange(i, "mosta_garage", e.target.value)}
+                    placeholder="Mosta Garage"
                     className="border px-2 py-1 w-full text-sm"
-                    title="Garage"
+                    title="Mosta Garage"
+                  />
+                  <input
+                    value={v.locations?.naxxar_garage || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "naxxar_garage", e.target.value)}
+                    placeholder="Naxxar Garage"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Naxxar Garage"
                   />
                 </div>
                 <div className="text-xs text-gray-600 font-semibold mt-2">
@@ -478,7 +499,8 @@ const AdminAddProduct = ({ onDone }) => {
                     (parseInt(v.locations?.downstairs) || 0) + 
                     (parseInt(v.locations?.upstairs) || 0) + 
                     (parseInt(v.locations?.store) || 0) + 
-                    (parseInt(v.locations?.garage) || 0)
+                    (parseInt(v.locations?.mosta_garage) || 0) + 
+                    (parseInt(v.locations?.naxxar_garage) || 0)
                   }
                 </div>
               </div>

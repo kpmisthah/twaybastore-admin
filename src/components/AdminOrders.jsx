@@ -3,7 +3,7 @@ import axios from "axios";
 import BASE_URL from "../api/config";
 import { FiMapPin, FiCheckCircle, FiX } from "react-icons/fi";
 
-const LOCATIONS = ["downstairs", "upstairs", "store", "garage"];
+const LOCATIONS = ["downstairs", "upstairs", "store", "mosta_garage", "naxxar_garage"];
 
 const STATUS_OPTIONS = ["Processing", "Packed", "Delivered", "Cancelled"];
 const STATUS_COLORS = {
@@ -340,7 +340,7 @@ function FulfillOrderModal({ order, onClose, onSuccess }) {
       itemId: item._id,
       name: item.name,
       required: item.qty,
-      locations: { downstairs: 0, upstairs: 0, store: 0, garage: 0 }
+      locations: { downstairs: 0, upstairs: 0, store: 0, mosta_garage: 0 , naxxar_garage: 0  }
     }))
   );
   const [loading, setLoading] = useState(false);

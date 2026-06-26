@@ -58,7 +58,7 @@ const AdminEditProduct = ({ id, onDone }) => {
     images: [],
     variants: [],
     offerDuration: "", // NEW
-    locations: { downstairs: "", upstairs: "", store: "", garage: "" },
+    locations: { downstairs: "", upstairs: "", store: "", mosta_garage: "" , naxxar_garage: ""  },
   });
 
   const [variants, setVariants] = useState([]);
@@ -79,7 +79,7 @@ const AdminEditProduct = ({ id, onDone }) => {
           discount: res.data.discount?.toString() || "",
           blackFridayOffer: res.data.blackFridayOffer || false, // 🖤 Added
           images: Array.isArray(res.data.images) ? res.data.images : [],
-          locations: res.data.locations || { downstairs: "", upstairs: "", store: "", garage: "" },
+          locations: res.data.locations || { downstairs: "", upstairs: "", store: "", mosta_garage: "" , naxxar_garage: ""  },
         });
         setVariants(
           Array.isArray(res.data.variants)
@@ -89,7 +89,7 @@ const AdminEditProduct = ({ id, onDone }) => {
               price: v.price?.toString() || "",
               discount: v.discount?.toString() || "",
               stock: v.stock?.toString() || "",
-              locations: v.locations || { downstairs: "", upstairs: "", store: "", garage: "" },
+              locations: v.locations || { downstairs: "", upstairs: "", store: "", mosta_garage: "" , naxxar_garage: ""  },
             }))
             : []
         );
@@ -105,7 +105,7 @@ const AdminEditProduct = ({ id, onDone }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    if (["downstairs", "upstairs", "store", "garage"].includes(name)) {
+    if (["downstairs", "upstairs", "store", "mosta_garage", "naxxar_garage"].includes(name)) {
       setForm((prev) => ({
         ...prev,
         locations: {
@@ -137,9 +137,9 @@ const AdminEditProduct = ({ id, onDone }) => {
       variants.map((v, i) => {
         if (i !== idx) return v;
         const updated = { ...v };
-        if (["downstairs", "upstairs", "store", "garage"].includes(field)) {
+        if (["downstairs", "upstairs", "store", "mosta_garage", "naxxar_garage"].includes(field)) {
           updated.locations = { ...updated.locations, [field]: value };
-          updated.stock = (parseInt(updated.locations.downstairs) || 0) + (parseInt(updated.locations.upstairs) || 0) + (parseInt(updated.locations.store) || 0) + (parseInt(updated.locations.garage) || 0);
+          updated.stock = (parseInt(updated.locations.downstairs) || 0) + (parseInt(updated.locations.upstairs) || 0) + (parseInt(updated.locations.store) || 0) + (parseInt(updated.locations.mosta_garage) || 0) + (parseInt(updated.locations.naxxar_garage) || 0);
         } else {
           updated[field] = value;
         }
@@ -157,7 +157,7 @@ const AdminEditProduct = ({ id, onDone }) => {
   const addVariant = () =>
     setVariants([
       ...variants,
-      { color: "", stock: "", locations: { downstairs: "", upstairs: "", store: "", garage: "" }, realPrice: "", price: "", discount: "" },
+      { color: "", stock: "", locations: { downstairs: "", upstairs: "", store: "", mosta_garage: "" , naxxar_garage: ""  }, realPrice: "", price: "", discount: "" },
     ]);
 
   const removeVariant = (idx) =>
@@ -197,7 +197,8 @@ const AdminEditProduct = ({ id, onDone }) => {
           downstairs: parseInt(form.locations?.downstairs) || 0,
           upstairs: parseInt(form.locations?.upstairs) || 0,
           store: parseInt(form.locations?.store) || 0,
-          garage: parseInt(form.locations?.garage) || 0,
+          mosta_garage: parseInt(form.locations?.mosta_garage) || 0,
+          naxxar_garage: parseInt(form.locations?.naxxar_garage) || 0,
         },
         variants: variants
           .filter((v) => v.color && v.price)
@@ -210,9 +211,10 @@ const AdminEditProduct = ({ id, onDone }) => {
               downstairs: parseInt(v.locations?.downstairs) || 0,
               upstairs: parseInt(v.locations?.upstairs) || 0,
               store: parseInt(v.locations?.store) || 0,
-              garage: parseInt(v.locations?.garage) || 0,
+              mosta_garage: parseInt(v.locations?.mosta_garage) || 0,
+              naxxar_garage: parseInt(v.locations?.naxxar_garage) || 0,
             },
-            stock: (parseInt(v.locations?.downstairs) || 0) + (parseInt(v.locations?.upstairs) || 0) + (parseInt(v.locations?.store) || 0) + (parseInt(v.locations?.garage) || 0)
+            stock: (parseInt(v.locations?.downstairs) || 0) + (parseInt(v.locations?.upstairs) || 0) + (parseInt(v.locations?.store) || 0) + (parseInt(v.locations?.mosta_garage) || 0) + (parseInt(v.locations?.naxxar_garage) || 0)
           })),
         images: form.images.filter(Boolean),
         offerExpiry: form.offerDuration
@@ -361,7 +363,7 @@ const AdminEditProduct = ({ id, onDone }) => {
         {variants.length === 0 && (
           <div className="bg-gray-50 p-3 rounded border">
             <label className="font-medium text-sm mb-2 block">Inventory Locations (Base Stock)</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               <input
                 name="downstairs"
                 type="number"
@@ -393,12 +395,22 @@ const AdminEditProduct = ({ id, onDone }) => {
                 disabled={updating}
               />
               <input
-                name="garage"
+                name="mosta_garage"
                 type="number"
                 min={0}
-                value={form.locations?.garage || ""}
+                value={form.locations?.mosta_garage || ""}
                 onChange={handleChange}
-                placeholder="Garage"
+                placeholder="Mosta Garage"
+                className="border px-2 py-1 w-full"
+                disabled={updating}
+              />
+              <input
+                name="naxxar_garage"
+                type="number"
+                min={0}
+                value={form.locations?.naxxar_garage || ""}
+                onChange={handleChange}
+                placeholder="Naxxar Garage"
                 className="border px-2 py-1 w-full"
                 disabled={updating}
               />
@@ -408,7 +420,8 @@ const AdminEditProduct = ({ id, onDone }) => {
                 (parseInt(form.locations?.downstairs) || 0) +
                 (parseInt(form.locations?.upstairs) || 0) +
                 (parseInt(form.locations?.store) || 0) +
-                (parseInt(form.locations?.garage) || 0)
+                (parseInt(form.locations?.mosta_garage) || 0) +
+                (parseInt(form.locations?.naxxar_garage) || 0)
               }
             </div>
           </div>
@@ -419,7 +432,8 @@ const AdminEditProduct = ({ id, onDone }) => {
             (parseInt(form.locations?.downstairs) || 0) +
             (parseInt(form.locations?.upstairs) || 0) +
             (parseInt(form.locations?.store) || 0) +
-            (parseInt(form.locations?.garage) || 0)
+            (parseInt(form.locations?.mosta_garage) || 0) +
+                (parseInt(form.locations?.naxxar_garage) || 0)
           )}
         </div>
 
@@ -503,7 +517,7 @@ const AdminEditProduct = ({ id, onDone }) => {
 
               <div className="pt-2 border-t border-gray-200">
                 <label className="font-medium text-xs text-gray-600 mb-1 block">Variant Inventory Locations</label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   <input
                     value={v.locations?.downstairs || ""}
                     type="number"
@@ -535,13 +549,23 @@ const AdminEditProduct = ({ id, onDone }) => {
                     disabled={updating}
                   />
                   <input
-                    value={v.locations?.garage || ""}
+                    value={v.locations?.mosta_garage || ""}
                     type="number"
                     min={0}
-                    onChange={(e) => handleVariantChange(i, "garage", e.target.value)}
-                    placeholder="Garage"
+                    onChange={(e) => handleVariantChange(i, "mosta_garage", e.target.value)}
+                    placeholder="Mosta Garage"
                     className="border px-2 py-1 w-full text-sm"
-                    title="Garage"
+                    title="Mosta Garage"
+                    disabled={updating}
+                  />
+                  <input
+                    value={v.locations?.naxxar_garage || ""}
+                    type="number"
+                    min={0}
+                    onChange={(e) => handleVariantChange(i, "naxxar_garage", e.target.value)}
+                    placeholder="Naxxar Garage"
+                    className="border px-2 py-1 w-full text-sm"
+                    title="Naxxar Garage"
                     disabled={updating}
                   />
                 </div>
@@ -550,7 +574,8 @@ const AdminEditProduct = ({ id, onDone }) => {
                     (parseInt(v.locations?.downstairs) || 0) + 
                     (parseInt(v.locations?.upstairs) || 0) + 
                     (parseInt(v.locations?.store) || 0) + 
-                    (parseInt(v.locations?.garage) || 0)
+                    (parseInt(v.locations?.mosta_garage) || 0) + 
+                    (parseInt(v.locations?.naxxar_garage) || 0)
                   }
                 </div>
               </div>

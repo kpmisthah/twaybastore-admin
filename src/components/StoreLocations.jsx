@@ -3,14 +3,15 @@ import axios from "axios";
 import BASE_URL from "../api/configadmin.js";
 import { FiBox, FiCheckCircle, FiDatabase, FiGrid, FiArrowDownCircle, FiArrowUpCircle, FiHome, FiTruck, FiSearch, FiRefreshCw, FiEdit2, FiCheck, FiX, FiChevronDown, FiDownload, FiPlusCircle, FiRepeat, FiShoppingCart, FiAlertTriangle } from "react-icons/fi";
 
-const LOCATIONS = ["downstairs", "upstairs", "store", "garage"];
+const LOCATIONS = ["downstairs", "upstairs", "store", "mosta_garage", "naxxar_garage"];
 const TABS = ["master", ...LOCATIONS];
 const TAB_META = {
   master:     { label: "Master Sheet", icon: <FiGrid className="w-4 h-4" />, color: "from-violet-600 to-indigo-600", bg: "bg-violet-50",  text: "text-violet-700" },
   downstairs: { label: "Downstairs",   icon: <FiArrowDownCircle className="w-4 h-4" />, color: "from-blue-600 to-cyan-600",     bg: "bg-blue-50",    text: "text-blue-700" },
   upstairs:   { label: "Upstairs",     icon: <FiArrowUpCircle className="w-4 h-4" />, color: "from-emerald-600 to-teal-600",  bg: "bg-emerald-50", text: "text-emerald-700" },
   store:      { label: "Store",        icon: <FiHome className="w-4 h-4" />, color: "from-amber-500 to-orange-500",  bg: "bg-amber-50",   text: "text-amber-700" },
-  garage:     { label: "Garage",       icon: <FiTruck className="w-4 h-4" />, color: "from-rose-500 to-pink-500",     bg: "bg-rose-50",    text: "text-rose-700" },
+  mosta_garage:     { label: "Mosta Garage",       icon: <FiTruck className="w-4 h-4" />, color: "from-rose-500 to-pink-500",     bg: "bg-rose-50",    text: "text-rose-700" },
+  naxxar_garage:     { label: "Naxxar Garage",       icon: <FiTruck className="w-4 h-4" />, color: "from-orange-500 to-yellow-500", bg: "bg-orange-50",  text: "text-orange-700" },
 };
 
 export default function StoreLocations() {
@@ -125,7 +126,7 @@ export default function StoreLocations() {
                 <FiBox className="w-8 h-8" /> Store Locations
               </h1>
               <p className="text-white/80 text-sm mt-1">
-                Track inventory across Downstairs · Upstairs · Store · Garage
+                Track inventory across Downstairs · Upstairs · Store · Mosta Garage · Naxxar Garage
               </p>
             </div>
             <button onClick={handleSync} disabled={syncing}

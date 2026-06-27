@@ -30,6 +30,7 @@ import PageAnalytics from "./components/PageAnalytics.jsx";
 import AdminBroadcastPage from "./pages/AdminBroadcastPage.jsx";
 import BannerManagement from "./pages/BannerManagement.jsx";
 import AbandonedCheckouts from "./pages/AbandonedCheckouts.jsx";
+import PreOrders from "./pages/PreOrders.jsx";
 
 function AdminShell({ children }) {
   return (
@@ -174,6 +175,15 @@ const App = () => (
           element={
             <AdminShell>
               <OrdersPage />
+            </AdminShell>
+          }
+        />
+
+        <Route
+          path="/admin/pre-orders"
+          element={
+            <AdminShell>
+              <PreOrders />
             </AdminShell>
           }
         />

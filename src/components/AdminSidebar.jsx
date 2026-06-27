@@ -6,6 +6,7 @@ const links = [
   { to: "/admin/products", label: "Products" },
   { to: "/admin/products/add", label: "Add Product" },
   { to: "/admin/orders", label: "Orders" },
+  { to: "/admin/pre-orders", label: "Pre-Orders" },
   { to: "/admin/abandoned-checkouts", label: "Abandoned Checkouts" },
   { to: "/admin/banners", label: "Hero Banners" },
   { to: "/supportchat", label: "Support Chat" },

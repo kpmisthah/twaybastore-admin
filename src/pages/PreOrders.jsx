@@ -48,7 +48,7 @@ export default function PreOrders() {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await axios.get(`${BASE_URL}/products`);
+      const { data } = await axios.get(`${BASE_URL}/products?limit=1000`);
       if (data.products) {
         setProducts(data.products);
       }

@@ -48,7 +48,9 @@ const AdminOrders = () => {
     axios.get(`${BASE_URL}/orders/admin/orders`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => {
-      setOrders(sortOrders(res.data));
+      // Filter out shop and wolt POS sales from the main UI order listing
+      const websiteOrders = res.data.filter(o => o.channel !== "shop" && o.channel !== "wolt");
+      setOrders(sortOrders(websiteOrders));
     });
   }, []);
 
